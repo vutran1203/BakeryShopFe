@@ -1,27 +1,26 @@
 import React, { useEffect, useState } from 'react';
-import { Menu, Button, Badge, Input, Avatar, Dropdown, Space, theme, message, Drawer, List, Typography, Grid } from 'antd'; // Thêm Grid
+import { Menu, Button, Badge, Input, Avatar, Dropdown, Space, theme, message, Drawer, List, Typography, Grid } from 'antd';
 import { 
     HomeOutlined, HistoryOutlined, LogoutOutlined, AppstoreOutlined, 
-    ShoppingCartOutlined, SearchOutlined, DeleteOutlined, UserOutlined, MenuOutlined 
+    ShoppingCartOutlined, SearchOutlined, DeleteOutlined, UserOutlined, 
+    MenuOutlined // Thêm icon Hamburger
 } from '@ant-design/icons';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { getCart, removeFromCart } from '../utils/cart';
 
-const { Text } = Typography;
-const { useBreakpoint } = Grid; // Hook để check màn hình
+const { useBreakpoint } = Grid;
 
 const Header = () => {
-    const screens = useBreakpoint(); // Lấy kích thước màn hình
+    const screens = useBreakpoint();
     const navigate = useNavigate();
     const location = useLocation();
     const [user, setUser] = useState(null);
-    const [cartItems, setCartItems] = useState([]);
     const [cartCount, setCartCount] = useState(0);
-    const [openDrawer, setOpenDrawer] = useState(false);
+    const [openDrawer, setOpenDrawer] = useState(false); // Cart Drawer
+    const [openMobileMenu, setOpenMobileMenu] = useState(false); // Menu Drawer mới
     const { token: { colorPrimary } } = theme.useToken();
 
-    // ... (Giữ nguyên các hàm refreshCart, useEffect, handleLogout, handleDeleteItem như cũ) ...
-    // ... Bạn copy lại logic JS cũ vào đây nhé, không thay đổi logic ...
+    // ... (Giữ nguyên các hàm useEffect, handleLogout, handleDeleteItem, userMenuItems, subTotal) ...
     const refreshCart = () => {
         const cart = getCart();
         setCartItems(cart);
@@ -36,7 +35,6 @@ const Header = () => {
         else setUser(null);
         refreshCart();
         window.addEventListener('storage', refreshCart);
-        // Lắng nghe sự kiện mở drawer
         const handleOpenDrawer = () => setOpenDrawer(true);
         window.addEventListener('open_cart_drawer', handleOpenDrawer);
         return () => {
@@ -66,13 +64,15 @@ const Header = () => {
         user && { key: '3', label: 'Đăng xuất', icon: <LogoutOutlined />, danger: true, onClick: handleLogout },
     ].filter(Boolean);
 
-    const menuItems = [
+    // Menu chính cho Mobile và Desktop
+    const mainMenuItems = [
         { label: <Link to="/">Trang chủ</Link>, key: '/' },
         { label: <Link to="/products">Sản phẩm</Link>, key: '/products' },
         { label: <Link to="/about">Về chúng tôi</Link>, key: '/about' },
     ];
 
     const subTotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+    const isMobile = !screens.md; // Biến kiểm tra màn hình điện thoại
 
     return (
         <>
@@ -80,37 +80,30 @@ const Header = () => {
                 position: 'sticky', top: 0, zIndex: 1000, width: '100%', height: '70px',
                 backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(10px)',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center',
-                justifyContent: 'space-between', 
-                // Responsive Padding: Máy tính 50px, Điện thoại 20px
-                padding: screens.md ? '0 50px' : '0 20px', 
-                boxSizing: 'border-box'
+                justifyContent: 'space-between', padding: isMobile ? '0 20px' : '0 50px', boxSizing: 'border-box'
             }}>
-                {/* LOGO - Luôn hiện */}
-                <div onClick={() => navigate('/')} style={{ fontFamily: "'Pacifico', cursive", fontSize: screens.md ? '28px' : '24px', color: colorPrimary, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    {!screens.md ? 'Bakery' : '🍰 BakeryShop'} {/* Mobile hiện tên ngắn hơn */}
+                {/* 1. LOGO & HAMBURGER */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    {isMobile && (
+                        <Button type="text" icon={<MenuOutlined style={{ fontSize: 20 }} />} onClick={() => setOpenMobileMenu(true)} />
+                    )}
+                    <div onClick={() => navigate('/')} style={{ fontFamily: "'Pacifico', cursive", fontSize: isMobile ? '24px' : '28px', color: colorPrimary, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        {isMobile ? 'Bakery' : '🍰 BakeryShop'}
+                    </div>
                 </div>
 
-                {/* SEARCH & MENU - Chỉ hiện trên máy tính (screens.md = true) */}
-                {screens.md && (
+                {/* 2. SEARCH & MENU (DESKTOP ONLY) */}
+                {!isMobile && (
                     <>
                         <div style={{ flex: 1, maxWidth: '400px', margin: '0 40px' }}>
-                            <Input.Search 
-                                placeholder="Tìm kiếm bánh..." allowClear
-                                onSearch={(val) => val.trim() && navigate(`/search?q=${val}`)}
-                                style={{ borderRadius: '20px' }} size="large"
-                            />
+                            <Input.Search placeholder="Tìm kiếm bánh..." allowClear onSearch={(val) => val.trim() && navigate(`/search?q=${val}`)} style={{ borderRadius: '20px' }} size="large" />
                         </div>
-                        <Menu mode="horizontal" selectedKeys={[location.pathname]} items={menuItems} style={{ borderBottom: 'none', background: 'transparent', width: '300px', fontSize: '16px', fontWeight: 500 }} />
+                        <Menu mode="horizontal" selectedKeys={[location.pathname]} items={mainMenuItems} style={{ borderBottom: 'none', background: 'transparent', width: '300px', fontSize: '16px', fontWeight: 500 }} />
                     </>
                 )}
 
-                {/* ACTIONS - Luôn hiện nhưng thu gọn trên mobile */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: screens.md ? '25px' : '15px' }}>
-                    {/* Nút Search cho Mobile (Khi bị ẩn thanh search to) */}
-                    {!screens.md && (
-                        <Button type="text" shape="circle" icon={<SearchOutlined />} onClick={() => navigate('/products')} />
-                    )}
-
+                {/* 3. ACTIONS (CART + USER) */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '15px' : '25px' }}>
                     <Badge count={cartCount} showZero color={colorPrimary}>
                         <Button type="text" shape="circle" icon={<ShoppingCartOutlined style={{ fontSize: '22px' }} />} onClick={() => setOpenDrawer(true)} />
                     </Badge>
@@ -119,11 +112,10 @@ const Header = () => {
                         <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" arrow>
                             <a onClick={(e) => e.preventDefault()} style={{ display: 'inline-block' }}>
                                 <Space style={{ cursor: 'pointer' }}>
-                                    <Avatar style={{ backgroundColor: colorPrimary, verticalAlign: 'middle' }} size={screens.md ? "large" : "default"}>
+                                    <Avatar style={{ backgroundColor: colorPrimary, verticalAlign: 'middle' }} size={isMobile ? "default" : "large"}>
                                         {user.username?.charAt(0).toUpperCase()}
                                     </Avatar>
-                                    {/* Trên Mobile ẩn tên đi cho gọn */}
-                                    {screens.md && (
+                                    {!isMobile && (
                                         <span style={{ fontWeight: 600, color: '#333', display: 'inline-block', marginLeft: 8, whiteSpace: 'nowrap' }}>
                                             {user.fullName || user.username}
                                         </span>
@@ -132,20 +124,38 @@ const Header = () => {
                             </a>
                         </Dropdown>
                     ) : (
-                        <Button type="primary" shape="round" icon={<UserOutlined />} size={screens.md ? "large" : "middle"} onClick={() => navigate('/login')}>
-                            {screens.md ? 'Đăng nhập' : ''} {/* Mobile chỉ hiện icon */}
+                        <Button type="primary" shape="round" icon={<UserOutlined />} size={isMobile ? "small" : "large"} onClick={() => navigate('/login')}>
+                            {!isMobile ? 'Đăng nhập' : ''}
                         </Button>
                     )}
                 </div>
             </div>
 
-            {/* ... (Phần Drawer Giỏ hàng giữ nguyên không đổi) ... */}
+            {/* --- DRAWER DÀNH CHO MENU MOBILE --- */}
+            <Drawer
+                title="Menu"
+                placement="left"
+                onClose={() => setOpenMobileMenu(false)}
+                open={openMobileMenu}
+                width={250}
+                bodyStyle={{ padding: 0 }}
+            >
+                <Menu 
+                    mode="inline" 
+                    items={mainMenuItems} 
+                    selectedKeys={[location.pathname]}
+                    onClick={() => setOpenMobileMenu(false)} // Đóng drawer sau khi chọn
+                />
+            </Drawer>
+            
+            {/* --- DRAWER DÀNH CHO GIỎ HÀNG (GIỮ NGUYÊN) --- */}
             <Drawer
                 title={`Giỏ hàng (${cartCount} món)`}
                 placement="right"
                 onClose={() => setOpenDrawer(false)}
                 open={openDrawer}
-                footer={
+                width={400}
+                footer={ /* ... (Footer giữ nguyên) ... */
                     <div style={{ textAlign: 'right' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 15, fontSize: 16, fontWeight: 'bold' }}>
                             <span>Tạm tính:</span>
@@ -168,14 +178,18 @@ const Header = () => {
                         itemLayout="horizontal"
                         dataSource={cartItems}
                         renderItem={(item) => (
-                            <List.Item actions={[<Button type="text" danger icon={<DeleteOutlined />} onClick={() => handleDeleteItem(item.id)} />]}>
+                            <List.Item
+                                actions={[
+                                    <Button type="text" danger icon={<DeleteOutlined />} onClick={() => handleDeleteItem(item.id)} />
+                                ]}
+                            >
                                 <List.Item.Meta
                                     avatar={<Avatar src={item.imageUrl} shape="square" size={60} />}
-                                    title={<Text strong>{item.name}</Text>}
+                                    title={<Typography.Text strong>{item.name}</Typography.Text>}
                                     description={
                                         <div>
                                             <div>{item.price.toLocaleString()} đ x {item.quantity}</div>
-                                            <Text type="warning" strong>{(item.price * item.quantity).toLocaleString()} đ</Text>
+                                            <Typography.Text type="warning" strong>{(item.price * item.quantity).toLocaleString()} đ</Typography.Text>
                                         </div>
                                     }
                                 />
