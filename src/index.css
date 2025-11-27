@@ -1,0 +1,37 @@
+/* src/index.css */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Nunito', sans-serif !important; /* Font chữ thân thiện */
+  background-color: #FFFBF0; /* Màu kem nhạt làm nền (rất hợp với bánh) */
+}
+
+/* Tùy chỉnh thanh cuộn cho đẹp */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1; 
+}
+::-webkit-scrollbar-thumb {
+  background: #d48806; 
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #ad6800; 
+}
+
+/* Responsive: Màn hình nhỏ hơn 768px */
+@media (max-width: 768px) {
+  /* Giảm padding của các container chính */
+  div[style*="padding: 20px 50px"], 
+  div[style*="padding: 40px 50px"],
+  div[style*="padding: 0 50px"] {
+    padding: 10px 15px !important; /* Lề nhỏ lại còn 15px */
+  }
+
+  /* Ẩn bớt các thành phần rườm rà trên Mobile */
+  .mobile-hidden {
+    display: none !important;
+  }
+}
