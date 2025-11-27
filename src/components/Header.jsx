@@ -3,24 +3,32 @@ import { Menu, Button, Badge, Input, Avatar, Dropdown, Space, theme, message, Dr
 import { 
     HomeOutlined, HistoryOutlined, LogoutOutlined, AppstoreOutlined, 
     ShoppingCartOutlined, SearchOutlined, DeleteOutlined, UserOutlined, 
-    MenuOutlined // Thêm icon Hamburger
+    MenuOutlined 
 } from '@ant-design/icons';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { getCart, removeFromCart } from '../utils/cart';
 
 const { useBreakpoint } = Grid;
+const { Text } = Typography;
 
 const Header = () => {
     const screens = useBreakpoint();
     const navigate = useNavigate();
     const location = useLocation();
+    
+    // --- KHAI BÁO STATE (Đã thêm cartItems) ---
     const [user, setUser] = useState(null);
-    const [cartCount, setCartCount] = useState(0);
-    const [openDrawer, setOpenDrawer] = useState(false); // Cart Drawer
-    const [openMobileMenu, setOpenMobileMenu] = useState(false); // Menu Drawer mới
-    const { token: { colorPrimary } } = theme.useToken();
+    const [cartItems, setCartItems] = useState([]); // Chứa dữ liệu giỏ hàng
+    const [cartCount, setCartCount] = useState(0); 
+    const [openDrawer, setOpenDrawer] = useState(false);
+    const [openMobileMenu, setOpenMobileMenu] = useState(false); 
+    // ------------------------------------------
 
-    // ... (Giữ nguyên các hàm useEffect, handleLogout, handleDeleteItem, userMenuItems, subTotal) ...
+    const { token: { colorPrimary } } = theme.useToken();
+    const isMobile = !screens.md;
+    const subTotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+
+    // Hàm load lại giỏ hàng từ LocalStorage
     const refreshCart = () => {
         const cart = getCart();
         setCartItems(cart);
@@ -31,12 +39,20 @@ const Header = () => {
     useEffect(() => {
         const token = localStorage.getItem('token');
         const userStr = localStorage.getItem('user');
-        if (token && userStr) setUser(JSON.parse(userStr));
-        else setUser(null);
+        
+        if (token && userStr) {
+            setUser(JSON.parse(userStr));
+        } else {
+            setUser(null);
+        }
+
         refreshCart();
-        window.addEventListener('storage', refreshCart);
+
+        // Lắng nghe sự kiện thay đổi giỏ hàng (từ cart.js)
         const handleOpenDrawer = () => setOpenDrawer(true);
+        window.addEventListener('storage', refreshCart);
         window.addEventListener('open_cart_drawer', handleOpenDrawer);
+        
         return () => {
             window.removeEventListener('storage', refreshCart);
             window.removeEventListener('open_cart_drawer', handleOpenDrawer);
@@ -46,6 +62,8 @@ const Header = () => {
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        localStorage.removeItem('admin_notifications'); // Clear admin noti
+        // Giỏ hàng được giữ lại (hoặc chuyển về giỏ khách vãng lai)
         setUser(null);
         message.success("Đăng xuất thành công");
         navigate('/login');
@@ -57,6 +75,7 @@ const Header = () => {
         message.success("Đã xóa món khỏi giỏ");
     };
 
+    // Menu dropdown cho User (Lịch sử, Admin, Logout)
     const userMenuItems = [
         user && { key: '1', label: <Link to="/my-orders">Lịch sử đơn hàng</Link>, icon: <HistoryOutlined /> },
         (user && user.role === 'Admin') && { key: '2', label: <Link to="/admin">Trang quản trị</Link>, icon: <AppstoreOutlined /> },
@@ -70,9 +89,6 @@ const Header = () => {
         { label: <Link to="/products">Sản phẩm</Link>, key: '/products' },
         { label: <Link to="/about">Về chúng tôi</Link>, key: '/about' },
     ];
-
-    const subTotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-    const isMobile = !screens.md; // Biến kiểm tra màn hình điện thoại
 
     return (
         <>
@@ -132,30 +148,18 @@ const Header = () => {
             </div>
 
             {/* --- DRAWER DÀNH CHO MENU MOBILE --- */}
-            <Drawer
-                title="Menu"
-                placement="left"
-                onClose={() => setOpenMobileMenu(false)}
-                open={openMobileMenu}
-                width={250}
-                bodyStyle={{ padding: 0 }}
-            >
-                <Menu 
-                    mode="inline" 
-                    items={mainMenuItems} 
-                    selectedKeys={[location.pathname]}
-                    onClick={() => setOpenMobileMenu(false)} // Đóng drawer sau khi chọn
-                />
+            <Drawer title="Menu" placement="left" onClose={() => setOpenMobileMenu(false)} open={openMobileMenu} width={250} bodyStyle={{ padding: 0 }}>
+                <Menu mode="inline" items={mainMenuItems} selectedKeys={[location.pathname]} onClick={() => setOpenMobileMenu(false)} />
             </Drawer>
             
-            {/* --- DRAWER DÀNH CHO GIỎ HÀNG (GIỮ NGUYÊN) --- */}
+            {/* --- DRAWER DÀNH CHO GIỎ HÀNG (CART) --- */}
             <Drawer
                 title={`Giỏ hàng (${cartCount} món)`}
                 placement="right"
                 onClose={() => setOpenDrawer(false)}
                 open={openDrawer}
                 width={400}
-                footer={ /* ... (Footer giữ nguyên) ... */
+                footer={ 
                     <div style={{ textAlign: 'right' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 15, fontSize: 16, fontWeight: 'bold' }}>
                             <span>Tạm tính:</span>
@@ -170,7 +174,6 @@ const Header = () => {
                     </div>
                 }
             >
-                {/* ... (List item giữ nguyên) ... */}
                 {cartItems.length === 0 ? (
                     <div style={{ textAlign: 'center', marginTop: 50, color: '#999' }}>Giỏ hàng đang trống <br/> 😢</div>
                 ) : (
