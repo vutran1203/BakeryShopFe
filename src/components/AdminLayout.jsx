@@ -13,6 +13,7 @@ import { HubConnectionBuilder } from '@microsoft/signalr';
 
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://localhost:7050/api';
 
 const AdminLayout = () => {
     const navigate = useNavigate();
@@ -39,9 +40,9 @@ const AdminLayout = () => {
     // Kết nối SignalR
     useEffect(() => {
         const connection = new HubConnectionBuilder()
-            .withUrl("https://localhost:7050/hub/notification")
-            .withAutomaticReconnect()
-            .build();
+            .withUrl(BASE_URL.replace('/api', '') + "/hub/notification") 
+.withAutomaticReconnect()
+.build();
 
         connection.start()
             .then(() => console.log("SignalR Connected"))
