@@ -100,14 +100,17 @@ const AdminPage = () => {
         <div style={{ padding: 20 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
                 <h2>Quản lý Sản phẩm</h2>
-                <div style={{ gap: 10, display: 'flex' }}>
-                    <Button onClick={() => navigate('/admin/orders')}>
-                        📦 Xem Đơn Hàng
-                    </Button>
-                    <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsModalOpen(true)}>
-                        Thêm bánh mới
-                    </Button>
-                </div>
+                <Space size="middle"> 
+                {/* 1. Nút Xem Đơn Hàng */}
+                <Button onClick={() => navigate('/admin/orders')} size="large">
+                    📦 Xem Đơn Hàng
+                </Button>
+                
+                {/* 2. Nút Thêm Bánh */}
+                <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsModalOpen(true)} size="large">
+                    Thêm bánh mới
+                </Button>
+            </Space>
             </div>
 
             <Table 
