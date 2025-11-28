@@ -86,19 +86,31 @@ const AdminPage = () => {
     };
 
     const columns = [
-        { title: 'ID', dataIndex: 'id', width: 50 },
+        { 
+            title: 'ID', 
+            dataIndex: 'id',
+            responsive: ['md', 'lg'] // Ẩn trên màn hình nhỏ nhất (xs, sm)
+        },
         {
             title: 'Ảnh',
             dataIndex: 'imageUrl',
-            render: (url) => <img src={url} alt="" style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: 4 }} />
+            render: (url) => <img src={url} alt="Bánh" style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: 4 }} />
         },
         { title: 'Tên bánh', dataIndex: 'name', width: 200 },
         { title: 'Giá', dataIndex: 'price', render: (p) => `${p.toLocaleString()} đ` },
-        { title: 'Hành động', render: (_, record) => (
-            <Popconfirm title="Xóa bánh này?" onConfirm={() => handleDelete(record.id)}>
-                <Button danger icon={<DeleteOutlined />} size="small">Xóa</Button>
-            </Popconfirm>
-        )}
+        { 
+            title: 'Mô tả',
+            dataIndex: 'description',
+            responsive: ['lg'] // Chỉ hiện trên màn hình lớn nhất
+        },
+        { 
+            title: 'Hành động', 
+            render: (_, record) => (
+                <Popconfirm title="Xóa bánh này?" onConfirm={() => handleDelete(record.id)}>
+                    <Button danger icon={<DeleteOutlined />} size={isMobile ? "small" : "middle"}>Xóa</Button>
+                </Popconfirm>
+            )
+        },
     ];
 
     return (
