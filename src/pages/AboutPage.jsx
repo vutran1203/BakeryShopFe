@@ -1,5 +1,5 @@
 import React from 'react';
-import { Row, Col, Typography, Card, Divider } from 'antd';
+import { Row, Col, Typography, Card, Divider, Space } from 'antd';
 import { ShopOutlined, PhoneOutlined, MailOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
 
 const { Title, Paragraph, Text } = Typography;
@@ -80,6 +80,6 @@ const AboutPage = () => {
 };
 
 // Import Space nếu chưa có (mình bổ sung thêm ở trên)
-import { Space } from 'antd';
+
 
 export default AboutPage;
