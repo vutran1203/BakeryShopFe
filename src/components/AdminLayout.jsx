@@ -14,11 +14,14 @@ import { HubConnectionBuilder } from '@microsoft/signalr';
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
 const BASE_URL = import.meta.env.VITE_API_URL || 'https://localhost:7050/api';
-const isMobile = !screens.md;
 
 const AdminLayout = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    // 2. Khai báo hook
+    const screens = useBreakpoint();
+    // 3. Tính toán isMobile
+    const isMobile = !screens.md;
     
     // State lưu danh sách thông báo
     const [notifications, setNotifications] = useState([]);
