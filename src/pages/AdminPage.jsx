@@ -1,17 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Button, Modal, Form, Input, InputNumber, Upload, message, Popconfirm, Select, Space } from 'antd';
+import { Table, Button, Modal, Form, Input, InputNumber, Upload, message, Popconfirm, Select, Space, Grid } from 'antd';
 import { PlusOutlined, DeleteOutlined, UploadOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
+const { useBreakpoint } = Grid;
+
 const AdminPage = () => {
     const navigate = useNavigate();
+    const screens = useBreakpoint();
+    const isMobile = !screens.md; // Kiểm tra màn hình nhỏ
+
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [categories, setCategories] = useState([]);
-    
-    // State quản lý file ảnh
     const [fileList, setFileList] = useState([]);
 
     const fetchProducts = async () => {
@@ -58,24 +61,19 @@ const AdminPage = () => {
             formData.append('Description', values.description || "");
             formData.append('CategoryId', values.categoryId);
             
-            // Lấy file từ State fileList
             if (fileList.length > 0) {
                 formData.append('ImageFile', fileList[0].originFileObj);
             }
 
-            // Gọi API: Axios tự động nhận diện FormData và thêm Boundary
             await api.post('/Products', formData);
 
             message.success("Thêm bánh thành công!");
             setIsModalOpen(false);
-            setFileList([]); // Reset file sau khi thêm
+            setFileList([]); 
             fetchProducts();
         } catch (err) {
-            console.error("Lỗi thêm bánh:", err);
-            const errorMsg = err.response?.data?.errors 
-                ? JSON.stringify(err.response.data.errors) 
-                : "Thêm thất bại!";
-            message.error(errorMsg);
+            console.error(err);
+            message.error("Thêm thất bại!");
         }
     };
 
@@ -83,41 +81,67 @@ const AdminPage = () => {
         setFileList(newFileList);
     };
 
+    // Cấu hình cột (Ẩn bớt cột trên mobile)
     const columns = [
-        { title: 'ID', dataIndex: 'id', width: 50, responsive: ['md'] },
+        { 
+            title: 'ID', 
+            dataIndex: 'id', 
+            width: 50, 
+            responsive: ['md'] // Ẩn trên mobile
+        },
         { 
             title: 'Ảnh', 
             dataIndex: 'imageUrl', 
             render: (url) => <img src={url} alt="" style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: 4 }} /> 
         },
-        { title: 'Tên bánh', dataIndex: 'name' },
-        { title: 'Giá', dataIndex: 'price', render: (p) => `${p.toLocaleString()} đ` },
+        { title: 'Tên bánh', dataIndex: 'name', width: isMobile ? 120 : 200 },
+        { 
+            title: 'Giá', 
+            dataIndex: 'price', 
+            render: (p) => `${p.toLocaleString()} đ`,
+            width: 100
+        },
         { 
             title: 'Hành động', 
             render: (_, record) => (
                 <Popconfirm title="Xóa?" onConfirm={() => handleDelete(record.id)}>
                     <Button danger icon={<DeleteOutlined />} size="small">Xóa</Button>
                 </Popconfirm>
-            )
+            ),
+            width: 80
         }
     ];
 
     return (
-        <div style={{ padding: 20 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
-                <h2>Quản lý Sản phẩm</h2>
+        <div style={{ padding: isMobile ? 10 : 20 }}>
+            {/* Header: Trên Mobile sẽ xếp dọc, trên PC xếp ngang */}
+            <div style={{ 
+                display: 'flex', 
+                flexDirection: isMobile ? 'column' : 'row', 
+                justifyContent: 'space-between', 
+                alignItems: isMobile ? 'flex-start' : 'center',
+                marginBottom: 20,
+                gap: 10 
+            }}>
+                <h2 style={{ margin: 0 }}>Quản lý Sản phẩm</h2>
                 <Space> 
-                    <Button onClick={() => navigate('/admin/orders')}>Xem Đơn Hàng</Button>
-                    <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsModalOpen(true)}>Thêm bánh mới</Button>
+                    <Button onClick={() => navigate('/admin/orders')} size={isMobile ? "small" : "middle"}>
+                        📦 Đơn Hàng
+                    </Button>
+                    <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsModalOpen(true)} size={isMobile ? "small" : "middle"}>
+                        Thêm mới
+                    </Button>
                 </Space>
             </div>
 
+            {/* Table: Thêm scroll x để cuộn ngang trên điện thoại */}
             <Table 
                 dataSource={products} 
                 columns={columns} 
                 rowKey="id" 
                 loading={loading} 
                 pagination={{ pageSize: 8 }}
+                scroll={{ x: 600 }} // <--- QUAN TRỌNG: Cho phép cuộn ngang nếu bảng quá rộng
             />
 
             <Modal 
@@ -126,6 +150,7 @@ const AdminPage = () => {
                 onCancel={() => setIsModalOpen(false)} 
                 footer={null}
                 destroyOnClose
+                width={isMobile ? '95%' : 520} // Modal full màn hình trên mobile
             >
                 <Form layout="vertical" onFinish={handleAddProduct}>
                     <Form.Item label="Tên bánh" name="name" rules={[{ required: true }]}><Input /></Form.Item>
