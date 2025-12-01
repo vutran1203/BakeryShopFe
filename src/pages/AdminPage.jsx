@@ -11,7 +11,7 @@ const AdminPage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [categories, setCategories] = useState([]);
     
-    // --- STATE QUẢN LÝ FILE RIÊNG (Quan trọng) ---
+    // State quản lý file ảnh
     const [fileList, setFileList] = useState([]);
 
     const fetchProducts = async () => {
@@ -51,10 +51,6 @@ const AdminPage = () => {
     };
 
     const handleAddProduct = async (values) => {
-        // --- DEBUG: Kiểm tra dữ liệu trước khi gửi ---
-        console.log("1. Dữ liệu Form:", values);
-        console.log("2. Danh sách file:", fileList);
-
         try {
             const formData = new FormData();
             formData.append('Name', values.name);
@@ -62,51 +58,48 @@ const AdminPage = () => {
             formData.append('Description', values.description || "");
             formData.append('CategoryId', values.categoryId);
             
-            // LẤY FILE TỪ STATE fileList (Không lấy từ values.image)
+            // Lấy file từ State fileList
             if (fileList.length > 0) {
-                // Lấy file gốc
-                const file = fileList[0].originFileObj;
-                formData.append('ImageFile', file);
-                console.log("3. Đã append file:", file.name, file.size);
-            } else {
-                console.warn("!!! CẢNH BÁO: Chưa chọn file hoặc fileList rỗng");
+                formData.append('ImageFile', fileList[0].originFileObj);
             }
 
-            // Gửi đi (Để Axios tự xử lý Header)
+            // Gọi API: Axios tự động nhận diện FormData và thêm Boundary
             await api.post('/Products', formData);
 
             message.success("Thêm bánh thành công!");
             setIsModalOpen(false);
-            setFileList([]); // Reset file
+            setFileList([]); // Reset file sau khi thêm
             fetchProducts();
         } catch (err) {
-            console.error("Lỗi API:", err);
-            // In chi tiết lỗi từ Server trả về
-            if (err.response && err.response.data && err.response.data.errors) {
-                console.log("Chi tiết lỗi Server:", err.response.data.errors);
-                message.error("Lỗi: " + JSON.stringify(err.response.data.errors));
-            } else {
-                message.error("Thêm thất bại!");
-            }
+            console.error("Lỗi thêm bánh:", err);
+            const errorMsg = err.response?.data?.errors 
+                ? JSON.stringify(err.response.data.errors) 
+                : "Thêm thất bại!";
+            message.error(errorMsg);
         }
     };
 
-    // Hàm xử lý khi chọn ảnh
     const handleFileChange = ({ fileList: newFileList }) => {
-        // Giữ lại file mới nhất
-        setFileList(newFileList); 
+        setFileList(newFileList);
     };
 
     const columns = [
         { title: 'ID', dataIndex: 'id', width: 50, responsive: ['md'] },
-        { title: 'Ảnh', dataIndex: 'imageUrl', render: (url) => <img src={url} alt="" style={{ width: 50, height: 50, objectFit: 'cover' }} /> },
+        { 
+            title: 'Ảnh', 
+            dataIndex: 'imageUrl', 
+            render: (url) => <img src={url} alt="" style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: 4 }} /> 
+        },
         { title: 'Tên bánh', dataIndex: 'name' },
         { title: 'Giá', dataIndex: 'price', render: (p) => `${p.toLocaleString()} đ` },
-        { title: 'Hành động', render: (_, record) => (
-            <Popconfirm title="Xóa?" onConfirm={() => handleDelete(record.id)}>
-                <Button danger icon={<DeleteOutlined />} size="small">Xóa</Button>
-            </Popconfirm>
-        )}
+        { 
+            title: 'Hành động', 
+            render: (_, record) => (
+                <Popconfirm title="Xóa?" onConfirm={() => handleDelete(record.id)}>
+                    <Button danger icon={<DeleteOutlined />} size="small">Xóa</Button>
+                </Popconfirm>
+            )
+        }
     ];
 
     return (
@@ -119,7 +112,13 @@ const AdminPage = () => {
                 </Space>
             </div>
 
-            <Table dataSource={products} columns={columns} rowKey="id" loading={loading} />
+            <Table 
+                dataSource={products} 
+                columns={columns} 
+                rowKey="id" 
+                loading={loading} 
+                pagination={{ pageSize: 8 }}
+            />
 
             <Modal 
                 title="Thêm bánh mới" 
@@ -138,13 +137,12 @@ const AdminPage = () => {
                     </Form.Item>
                     <Form.Item label="Mô tả" name="description"><Input.TextArea /></Form.Item>
 
-                    {/* FORM ITEM CHO UPLOAD - ĐỘC LẬP */}
                     <Form.Item label="Hình ảnh">
                         <Upload 
                             listType="picture" 
                             maxCount={1} 
-                            beforeUpload={() => false} // Quan trọng: Chặn auto upload
-                            fileList={fileList} // Liên kết với State
+                            beforeUpload={() => false}
+                            fileList={fileList}
                             onChange={handleFileChange}
                         >
                             <Button icon={<UploadOutlined />}>Chọn ảnh</Button>

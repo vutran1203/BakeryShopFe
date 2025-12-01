@@ -1,14 +1,12 @@
 import axios from 'axios';
 
 const api = axios.create({
-    // Tự động lấy link: Nếu có biến môi trường thì dùng, không thì dùng localhost
+    // Tự động lấy link
     baseURL: import.meta.env.VITE_API_URL || 'https://localhost:7050/api',
-    headers: {
-        'Content-Type': 'application/json',
-    },
+    // 👇 ĐÃ XÓA PHẦN HEADERS CỨNG Ở ĐÂY
 });
 
-// Cấu hình tự động gửi Token nếu có (để sau này dùng cho Admin/Đặt hàng)
+// Interceptor giữ nguyên (để tự động gửi Token)
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('token');
