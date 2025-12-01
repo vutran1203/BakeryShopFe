@@ -84,8 +84,8 @@ const DashboardPage = () => {
             </Row>
 
             {/* Phần biểu đồ */}
-            <Card title="Biểu đồ doanh thu tuần qua (Demo)">
-                <div style={{ width: '100%', height: 300 }}>
+            <Card title="Biểu đồ doanh thu tuần qua ">
+                <div style={{ width: '100%', height: 300, minHeight: 300 }}>
                     <ResponsiveContainer>
                         <BarChart data={dataChart}>
                             <CartesianGrid strokeDasharray="3 3" />
