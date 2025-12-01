@@ -1,5 +1,5 @@
 import React from 'react';
-import { Row, Col, Typography, Card, Divider, Space } from 'antd';
+import { Row, Col, Typography, Card, Divider, Space, List } from 'antd';
 import { ShopOutlined, PhoneOutlined, MailOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
 
 const { Title, Paragraph, Text } = Typography;
