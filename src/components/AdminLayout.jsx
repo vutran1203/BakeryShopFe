@@ -1,36 +1,47 @@
 import React, { useEffect, useState } from 'react';
-import { Layout, Menu, notification, Badge, Popover, List, Avatar, Typography, Button } from 'antd';
+import { Layout, Menu, notification, Badge, Popover, List, Avatar, Typography, Button, Grid, Space } from 'antd';
 import { 
     DashboardOutlined, 
     ShopOutlined, 
     LogoutOutlined, 
     ShoppingCartOutlined,
-    BellOutlined,     // Icon cái chuông
-    UserOutlined
+    BellOutlined,     
+    UserOutlined,
+    MenuOutlined
 } from '@ant-design/icons';
 import { useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { HubConnectionBuilder } from '@microsoft/signalr';
-import { Grid } from 'antd';
 
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
-const BASE_URL = import.meta.env.VITE_API_URL || 'https://localhost:7050/api';
 const { useBreakpoint } = Grid;
+
+// Lấy Base URL từ biến môi trường
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://localhost:7050/api';
 
 const AdminLayout = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    // 2. Khai báo hook
     const screens = useBreakpoint();
-    // 3. Tính toán isMobile
-    const isMobile = !screens.md;
+    const isMobile = !screens.md; 
+
+    // State cho Sidebar
+    const [collapsed, setCollapsed] = useState(isMobile);
     
-    // State lưu danh sách thông báo
+    // State thông báo
     const [notifications, setNotifications] = useState([]);
-    // State lưu số lượng chưa đọc (để hiện số đỏ)
     const [unreadCount, setUnreadCount] = useState(0);
 
-    // Load thông báo cũ từ LocalStorage khi mới vào
+    // --- STYLE CHO SIDEBAR MOBILE (Tách ra biến riêng cho an toàn) ---
+    const siderStyle = isMobile ? {
+        position: 'fixed',
+        height: '100vh',
+        zIndex: 999,
+        left: 0,
+        top: 0
+    } : {};
+    // ---------------------------------------------------------------
+
     useEffect(() => {
         const savedNoti = localStorage.getItem('admin_notifications');
         if (savedNoti) {
@@ -39,44 +50,40 @@ const AdminLayout = () => {
     }, []);
 
     const handleLogout = () => {
-        localStorage.clear();
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
         navigate('/login');
     };
 
-    // Kết nối SignalR
     useEffect(() => {
         const connection = new HubConnectionBuilder()
-            .withUrl(BASE_URL.replace('/api', '') + "/hub/notification") 
-.withAutomaticReconnect()
-.build();
+            .withUrl(BASE_URL.replace('/api', '') + "/hub/notification")
+            .withAutomaticReconnect()
+            .build();
 
         connection.start()
             .then(() => console.log("SignalR Connected"))
             .catch(err => console.error("SignalR Error", err));
 
         connection.on("ReceiveOrder", (message) => {
-            // 1. Hiện thông báo góc màn hình (như cũ)
             notification.success({
                 message: 'Đơn hàng mới!',
                 description: message,
                 placement: 'topRight',
             });
 
-            // 2. Lưu vào danh sách thông báo
             const newNoti = {
-                id: Date.now(), // Tạo ID ngẫu nhiên bằng thời gian
+                id: Date.now(),
                 content: message,
                 time: new Date().toLocaleString(),
                 read: false
             };
 
             setNotifications(prev => {
-                const updated = [newNoti, ...prev]; // Thêm vào đầu danh sách
-                localStorage.setItem('admin_notifications', JSON.stringify(updated)); // Lưu LocalStorage
+                const updated = [newNoti, ...prev];
+                localStorage.setItem('admin_notifications', JSON.stringify(updated));
                 return updated;
             });
-            
-            // Tăng số chưa đọc
             setUnreadCount(prev => prev + 1);
         });
 
@@ -86,14 +93,10 @@ const AdminLayout = () => {
         };
     }, []);
 
-    // Xử lý khi bấm vào chuông -> Đánh dấu là đã xem (xóa số đỏ)
     const handleOpenNotification = (open) => {
-        if (open) {
-            setUnreadCount(0);
-        }
+        if (open) setUnreadCount(0);
     };
 
-    // Nội dung bên trong cái chuông
     const notificationContent = (
         <div style={{ width: 300, maxHeight: 400, overflowY: 'auto' }}>
             <List
@@ -163,39 +166,51 @@ const AdminLayout = () => {
 
     return (
         <Layout style={{ minHeight: '100vh' }}>
-            <Sider collapsible width={220}>
+            <Sider 
+                collapsible 
+                collapsed={collapsed} 
+                onCollapse={(value) => setCollapsed(value)}
+                collapsedWidth={isMobile ? 0 : 80}
+                width={220}
+                style={siderStyle} // <--- Sử dụng biến style đã tách ra ở trên
+                trigger={null} // Ẩn nút trigger mặc định ở dưới chân sidebar
+            >
                 <div style={{ height: 32, margin: 16, background: 'rgba(255, 255, 255, 0.2)', textAlign:'center', color:'white', lineHeight:'32px', fontWeight:'bold' }}>
                     BAKERY ADMIN
                 </div>
                 <Menu theme="dark" defaultSelectedKeys={[location.pathname]} mode="inline" items={menuItems} />
-
-                // 👇 THÊM DÒNG NÀY: Khi đóng lại thì chiều rộng = 0 (ẩn hẳn)
-    collapsedWidth={isMobile ? 0 : 80} 
-    
-    width={220}
-    // 👇 THÊM DÒNG NÀY: Để sidebar đè lên nội dung thay vì đẩy nội dung sang phải (tránh vỡ layout)
-    style={isMobile ? { position: 'fixed', height: '100vh', zIndex: 999 } : {}}
             </Sider>
+            
             <Layout>
-                <Header style={{ padding: '0 24px', background: '#fff', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', boxShadow: '0 1px 4px rgba(0,21,41,0.08)', zIndex: 1 }}>
+                <Header style={{ padding: '0 24px', background: '#fff', display: 'flex', justifyContent: isMobile ? 'space-between' : 'flex-end', alignItems: 'center', boxShadow: '0 1px 4px rgba(0,21,41,0.08)', zIndex: 1 }}>
                     
-                    {/* --- KHU VỰC CÁI CHUÔNG --- */}
-                    <Popover 
-                        content={notificationContent} 
-                        title="Thông báo mới nhất" 
-                        trigger="click" 
-                        placement="bottomRight"
-                        onOpenChange={handleOpenNotification}
-                    >
-                        <Badge count={unreadCount} style={{ backgroundColor: '#f5222d' }}>
-                            <Button type="text" shape="circle" icon={<BellOutlined style={{ fontSize: 20 }} />} />
-                        </Badge>
-                    </Popover>
-                    {/* -------------------------- */}
+                    {/* Nút mở Menu trên Mobile */}
+                    {isMobile && (
+                        <Button 
+                            type="text" 
+                            icon={<MenuOutlined />} 
+                            onClick={() => setCollapsed(!collapsed)}
+                            style={{ fontSize: '16px', width: 64, height: 64 }}
+                        />
+                    )}
 
-                    <div style={{ marginLeft: 24, display: 'flex', alignItems: 'center' }}>
-                        <Avatar style={{ backgroundColor: '#1677ff', marginRight: 8 }} icon={<UserOutlined />} />
-                        <span style={{ fontWeight: 'bold' }}>Quản trị viên</span>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <Popover 
+                            content={notificationContent} 
+                            title="Thông báo mới nhất" 
+                            trigger="click" 
+                            placement="bottomRight"
+                            onOpenChange={handleOpenNotification}
+                        >
+                            <Badge count={unreadCount} style={{ backgroundColor: '#f5222d' }}>
+                                <Button type="text" shape="circle" icon={<BellOutlined style={{ fontSize: 20 }} />} />
+                            </Badge>
+                        </Popover>
+
+                        <div style={{ marginLeft: 24, display: 'flex', alignItems: 'center' }}>
+                            <Avatar style={{ backgroundColor: '#1677ff', marginRight: 8 }} icon={<UserOutlined />} />
+                            {!isMobile && <span style={{ fontWeight: 'bold' }}>Quản trị viên</span>}
+                        </div>
                     </div>
                 </Header>
                 <Content style={{ margin: '16px' }}>
