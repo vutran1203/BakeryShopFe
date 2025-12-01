@@ -162,6 +162,13 @@ const AdminLayout = () => {
                     BAKERY ADMIN
                 </div>
                 <Menu theme="dark" defaultSelectedKeys={[location.pathname]} mode="inline" items={menuItems} />
+
+                // 👇 THÊM DÒNG NÀY: Khi đóng lại thì chiều rộng = 0 (ẩn hẳn)
+    collapsedWidth={isMobile ? 0 : 80} 
+    
+    width={220}
+    // 👇 THÊM DÒNG NÀY: Để sidebar đè lên nội dung thay vì đẩy nội dung sang phải (tránh vỡ layout)
+    style={isMobile ? { position: 'fixed', height: '100vh', zIndex: 999 } : {}}
             </Sider>
             <Layout>
                 <Header style={{ padding: '0 24px', background: '#fff', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', boxShadow: '0 1px 4px rgba(0,21,41,0.08)', zIndex: 1 }}>

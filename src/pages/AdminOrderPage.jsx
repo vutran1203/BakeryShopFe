@@ -46,10 +46,11 @@ const AdminOrderPage = () => {
     };
 
     const columns = [
-        { title: 'ID', dataIndex: 'id', width: 60 },
+        { title: 'ID', dataIndex: 'id', width: 60 , fixed: 'left'},
         { 
             title: 'Khách hàng', 
             dataIndex: 'customerName',
+            responsive: ['lg'],
             render: (text, record) => (
                 <div>
                     <b>{text}</b>
@@ -58,7 +59,7 @@ const AdminOrderPage = () => {
                 </div>
             )
         },
-        { title: 'Ngày đặt', dataIndex: 'orderDate', render: (d) => new Date(d).toLocaleString('vi-VN') },
+        { title: 'Ngày đặt', dataIndex: 'orderDate', render: (d) => new Date(d).toLocaleString('vi-VN'), responsive: ['md'] },
         { title: 'Tổng tiền', dataIndex: 'totalAmount', render: (v) => <b>{v.toLocaleString()} đ</b> },
         { 
             title: 'Trạng thái (Click để sửa)', 
@@ -99,6 +100,7 @@ const AdminOrderPage = () => {
                 loading={loading}
                 expandable={{ expandedRowRender }}
                 bordered
+                scroll={{ x: 600 }} // Thêm cuộn ngang
             />
         </div>
     );

@@ -73,7 +73,7 @@ const AdminCategoryPage = () => {
                 </Button>
             </div>
 
-            <Table dataSource={categories} columns={columns} rowKey="id" loading={loading} bordered pagination={false} />
+            <Table dataSource={categories} columns={columns} rowKey="id" loading={loading} bordered pagination={false} scroll={{ x: 400 }}/>
 
             <Modal title="Thêm danh mục mới" open={isModalOpen} onCancel={() => setIsModalOpen(false)} footer={null}>
                 <Form onFinish={handleAdd} layout="vertical">
