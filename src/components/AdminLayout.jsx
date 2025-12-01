@@ -10,10 +10,12 @@ import {
 } from '@ant-design/icons';
 import { useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { HubConnectionBuilder } from '@microsoft/signalr';
+import { Grid } from 'antd';
 
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
 const BASE_URL = import.meta.env.VITE_API_URL || 'https://localhost:7050/api';
+const { useBreakpoint } = Grid;
 
 const AdminLayout = () => {
     const navigate = useNavigate();
