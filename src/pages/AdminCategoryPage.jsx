@@ -1,9 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Button, Modal, Form, Input, message, Popconfirm } from 'antd';
+import { Table, Button, Modal, Form, Input, message, Popconfirm, List, Card, Grid, Typography } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import api from '../services/api';
 
+const { useBreakpoint } = Grid;
+const { Text } = Typography;
+
 const AdminCategoryPage = () => {
+    const screens = useBreakpoint();
+    const isMobile = !screens.md; // Kiểm tra màn hình nhỏ
+
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -26,13 +32,9 @@ const AdminCategoryPage = () => {
 
     const handleAdd = async (values) => {
         try {
-            // Backend nhận chuỗi string name, nên gửi object { name: ... } hoặc string tùy cấu hình
-            // Ở controller C# mình để [FromBody] string name -> Axios cần gửi đúng header hoặc wrap
-            // Cách an toàn nhất cho .NET là gửi object DTO, nhưng để nhanh ta gửi header JSON
             await api.post('/Categories', JSON.stringify(values.name), {
                 headers: { 'Content-Type': 'application/json' }
             });
-            
             message.success("Thêm thành công!");
             setIsModalOpen(false);
             fetchCategories();
@@ -51,6 +53,7 @@ const AdminCategoryPage = () => {
         }
     };
 
+    // --- CẤU HÌNH CHO DESKTOP (TABLE) ---
     const columns = [
         { title: 'ID', dataIndex: 'id', width: 80 },
         { title: 'Tên danh mục', dataIndex: 'name' },
@@ -64,20 +67,63 @@ const AdminCategoryPage = () => {
         }
     ];
 
+    // --- CẤU HÌNH CHO MOBILE (CARD LIST) ---
+    const renderMobileItem = (item) => (
+        <List.Item>
+            <Card 
+                hoverable
+                style={{ width: '100%', borderRadius: 12 }}
+                bodyStyle={{ padding: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+            >
+                <div>
+                    <div style={{ fontSize: 12, color: '#888' }}>ID: {item.id}</div>
+                    <Text strong style={{ fontSize: 16 }}>{item.name}</Text>
+                </div>
+                
+                <Popconfirm title="Xóa danh mục này?" onConfirm={() => handleDelete(item.id)}>
+                    <Button danger icon={<DeleteOutlined />}>Xóa</Button>
+                </Popconfirm>
+            </Card>
+        </List.Item>
+    );
+
     return (
-        <div style={{ padding: 20 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
-                <h2>Quản lý Danh mục</h2>
-                <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsModalOpen(true)}>
-                    Thêm danh mục
+        <div style={{ padding: isMobile ? 10 : 20 }}>
+            {/* Header Responsive */}
+            <div style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center', 
+                marginBottom: 20 
+            }}>
+                <h2 style={{ margin: 0 }}>Quản lý Danh mục</h2>
+                <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsModalOpen(true)} size={isMobile ? "small" : "middle"}>
+                    {isMobile ? 'Thêm' : 'Thêm danh mục'}
                 </Button>
             </div>
 
-            <Table dataSource={categories} columns={columns} rowKey="id" loading={loading} bordered pagination={false} scroll={{ x: 400 }}/>
+            {/* Chuyển đổi giao diện Table / List */}
+            {!isMobile ? (
+                <Table 
+                    dataSource={categories} 
+                    columns={columns} 
+                    rowKey="id" 
+                    loading={loading} 
+                    bordered 
+                    pagination={{ pageSize: 8 }} 
+                />
+            ) : (
+                <List
+                    loading={loading}
+                    dataSource={categories}
+                    renderItem={renderMobileItem}
+                    split={false}
+                />
+            )}
 
-            <Modal title="Thêm danh mục mới" open={isModalOpen} onCancel={() => setIsModalOpen(false)} footer={null}>
+            <Modal title="Thêm danh mục mới" open={isModalOpen} onCancel={() => setIsModalOpen(false)} footer={null} width={isMobile ? '90%' : 520}>
                 <Form onFinish={handleAdd} layout="vertical">
-                    <Form.Item name="name" label="Tên danh mục" rules={[{ required: true }]}>
+                    <Form.Item name="name" label="Tên danh mục" rules={[{ required: true, message: 'Vui lòng nhập tên!' }]}>
                         <Input placeholder="Ví dụ: Bánh Trung Thu" />
                     </Form.Item>
                     <Button type="primary" htmlType="submit" block>Lưu</Button>
