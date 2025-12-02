@@ -95,8 +95,8 @@ const CartPage = () => {
             {cartItems.length > 0 ? (
                 <Card style={{ marginTop: 20, textAlign: 'right' }}>
                     <Title level={4}>Tổng cộng: <span style={{color: '#d48806'}}>{totalAmount.toLocaleString()} đ</span></Title>
-                    <Button type="primary" size="large" icon={<CreditCardOutlined />} onClick={() => setIsModalOpen(true)}>
-                        Tiến hành Thanh toán
+                    <Button type="primary" size="large" icon={<CreditCardOutlined />} onClick={() => setIsModalOpen(true)} disabled={true}>
+                        Tiến hành Thanh toán (Tạm ngưng)
                     </Button>
                 </Card>
             ) : (
