@@ -23,8 +23,7 @@ const HomePage = () => {
 
     // === API CHUẨN — KHÔNG LỖI MAP ===
     const fetchProducts = async (page, keyword) => {
-      console.log("SEARCH TERM:", searchTerm);
-console.log("API RESULT RAW:", response.data);
+      
 
         try {
             setLoading(true);
@@ -34,6 +33,9 @@ console.log("API RESULT RAW:", response.data);
 
             const response = await api.get(url);
             const data = response.data;
+
+            console.log("SEARCH TERM:", searchTerm);
+console.log("API RESULT RAW:", response.data);
 
             let safeData = [];
             let safeTotal = 0;
