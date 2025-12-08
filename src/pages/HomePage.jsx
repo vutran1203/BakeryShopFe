@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Col, Row, Button, Typography, Spin, message, Rate, Pagination, Skeleton, Badge, Grid, Input } from 'antd'; // 1. Đã thêm Input
+import { Card, Col, Row, Button, Typography, message, Pagination, Skeleton, Badge, Grid, Input } from 'antd';
 import { ShoppingCartOutlined } from '@ant-design/icons';
 import api from '../services/api';
 import { addToCart } from '../utils/cart';
@@ -10,36 +10,58 @@ const { Title, Text, Paragraph } = Typography;
 const { useBreakpoint } = Grid;
 
 const HomePage = () => {
-    const [products, setProducts] = useState([]);
+    // --- STATE ---
+    const [products, setProducts] = useState([]); // Luôn khởi tạo là mảng rỗng
     const [loading, setLoading] = useState(false);
-    
-    // --- State cho phân trang ---
     const [currentPage, setCurrentPage] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
+    const [searchTerm, setSearchTerm] = useState(""); // Lưu từ khóa tìm kiếm
     const pageSize = 8; 
-    // ----------------------------
-    
+
+    // --- HOOKS ---
     const navigate = useNavigate();
     const screens = useBreakpoint();
     const isMobile = !screens.md; // Kiểm tra màn hình nhỏ
 
-    const fetchProducts = async (page) => {
+    // --- HÀM GỌI API (ĐÃ NÂNG CẤP CHỐNG LỖI) ---
+    const fetchProducts = async (page, searchKeyword = searchTerm) => {
         try {
             setLoading(true);
-            const response = await api.get(`/Products?page=${page}&pageSize=${pageSize}`);
-            setProducts(response.data.data || response.data); 
-            setTotalItems(response.data.total || 0);
+            
+            // Xây dựng URL: Nếu có từ khóa thì thêm vào, không thì thôi
+            const keywordParam = searchKeyword ? `&search=${encodeURIComponent(searchKeyword)}` : '';
+            const url = `/Products?page=${page}&pageSize=${pageSize}${keywordParam}`;
+            
+            const response = await api.get(url);
+            
+            // 👇 LOGIC CHỐNG LỖI "TRẮNG TRANG" (QUAN TRỌNG)
+            // Kiểm tra mọi trường hợp: data thường, Data hoa, hoặc không có gì
+            const listData = response.data?.data || response.data?.Data || [];
+            
+            if (Array.isArray(listData)) {
+                setProducts(listData);
+            } else {
+                // Nếu API trả về linh tinh không phải mảng -> Gán rỗng ngay
+                setProducts([]); 
+            }
+
+            setTotalItems(response.data?.total || response.data?.Total || 0);
+
         } catch (error) {
-            console.error(error);
+            console.error("Lỗi tải sản phẩm:", error);
+            setProducts([]); // Lỗi mạng cũng gán rỗng để không crash web
         } finally {
             setLoading(false);
         }
     };
 
+    // --- EFFECT: GỌI KHI ĐỔI TRANG ---
     useEffect(() => {
         fetchProducts(currentPage);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentPage]);
 
+    // --- HÀM XỬ LÝ ---
     const handlePageChange = (page) => {
         setCurrentPage(page);
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -53,20 +75,16 @@ const HomePage = () => {
         });
     };
 
-    // 2. Hàm xử lý tìm kiếm
     const onSearch = (value) => {
-        if (!value) return;
-        message.loading(`Đang tìm kiếm: ${value}...`);
-        // Logic tìm kiếm: Bạn có thể navigate sang trang filter hoặc gọi API search
-        // Ví dụ: navigate(`/products?search=${value}`);
-        
-        // Tạm thời gọi API filter (bạn cần thay đổi logic này tùy theo backend của bạn)
-        // fetchProducts(1, value); 
+        setSearchTerm(value); // Lưu từ khóa
+        setCurrentPage(1);    // Reset về trang 1
+        fetchProducts(1, value); // Gọi API ngay lập tức
     };
 
+    // --- RENDER ---
     return (
         <div>
-            {/* 👇 3. THANH TÌM KIẾM CHO MOBILE (Chỉ hiện khi isMobile = true) 👇 */}
+            {/* 1. THANH TÌM KIẾM CHO MOBILE */}
             {isMobile && (
                 <div style={{ padding: '15px 20px', background: '#fff', position: 'sticky', top: 0, zIndex: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
                     <Input.Search 
@@ -74,16 +92,17 @@ const HomePage = () => {
                         onSearch={onSearch} 
                         enterButton 
                         size="large" 
+                        allowClear
                     />
                 </div>
             )}
             
-            {/* Banner */}
+            {/* 2. BANNER */}
             <div style={{
                 background: 'linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url("https://images.unsplash.com/photo-1509365465985-25d11c17e812?q=80&w=1920")',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                height: isMobile ? '250px' : '400px', // Điều chỉnh chiều cao banner trên mobile cho đẹp
+                height: isMobile ? '250px' : '400px',
                 display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
                 color: 'white', textAlign: 'center', marginBottom: '40px', borderRadius: '0 0 50% 50% / 20px'
             }}>
@@ -95,6 +114,7 @@ const HomePage = () => {
                 <Title level={2} style={{ textAlign: 'center', marginBottom: 40, color: '#434343' }}>✨ Sản phẩm nổi bật ✨</Title>
 
                 {loading ? (
+                    // LOADING SKELETON
                     <Row gutter={[24, 32]}>
                         {[...Array(8)].map((_, i) => (
                             <Col xs={24} sm={12} md={8} lg={6} key={i}>
@@ -107,54 +127,66 @@ const HomePage = () => {
                     </Row>
                 ) : (
                     <>
-                        <Row gutter={[24, 32]}>
-                            {products.map((product, index) => {
-                                const imageUrl = (!product.imageUrl || !product.imageUrl.startsWith('http')) 
-                                    ? "https://placehold.co/300x200?text=No+Image" : product.imageUrl;
-                                
-                                const ribbonText = index % 3 === 0 ? "Best Seller" : (index % 4 === 0 ? "New" : null);
-                                const ribbonColor = index % 3 === 0 ? "red" : "green";
+                        {/* 3. DANH SÁCH SẢN PHẨM (ĐÃ BẢO VỆ CHẶT CHẼ) */}
+                        {Array.isArray(products) && products.length > 0 ? (
+                            <Row gutter={[24, 32]}>
+                                {products.map((product, index) => {
+                                    // Fallback ảnh nếu lỗi hoặc null
+                                    const imageUrl = (!product.imageUrl || !product.imageUrl.startsWith('http')) 
+                                        ? "https://placehold.co/300x200?text=No+Image" : product.imageUrl;
+                                    
+                                    const ribbonText = index % 3 === 0 ? "Best Seller" : (index % 4 === 0 ? "New" : null);
+                                    const ribbonColor = index % 3 === 0 ? "red" : "green";
 
-                                return (
-                                    <Col xs={24} sm={12} md={8} lg={6} key={product.id}>
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 50 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ duration: 0.5, delay: index * 0.1 }}
-                                        >
-                                            {ribbonText ? (
-                                                <Badge.Ribbon text={ribbonText} color={ribbonColor}>
+                                    return (
+                                        <Col xs={24} sm={12} md={8} lg={6} key={product.id || index}>
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 50 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ duration: 0.5, delay: index * 0.1 }}
+                                            >
+                                                {ribbonText ? (
+                                                    <Badge.Ribbon text={ribbonText} color={ribbonColor}>
+                                                        <ProductCard 
+                                                            product={product} 
+                                                            imageUrl={imageUrl} 
+                                                            navigate={navigate} 
+                                                            onAdd={handleAddToCart} 
+                                                        />
+                                                    </Badge.Ribbon>
+                                                ) : (
                                                     <ProductCard 
                                                         product={product} 
                                                         imageUrl={imageUrl} 
                                                         navigate={navigate} 
                                                         onAdd={handleAddToCart} 
                                                     />
-                                                </Badge.Ribbon>
-                                            ) : (
-                                                <ProductCard 
-                                                    product={product} 
-                                                    imageUrl={imageUrl} 
-                                                    navigate={navigate} 
-                                                    onAdd={handleAddToCart} 
-                                                />
-                                            )}
-                                        </motion.div>
-                                    </Col>
-                                );
-                            })}
-                        </Row>
+                                                )}
+                                            </motion.div>
+                                        </Col>
+                                    );
+                                })}
+                            </Row>
+                        ) : (
+                            // UI KHI KHÔNG CÓ DỮ LIỆU
+                            <div style={{ textAlign: 'center', padding: '50px 0' }}>
+                                <p style={{ fontSize: 18, color: '#888' }}>Không tìm thấy bánh nào! 🍪</p>
+                                {searchTerm && <Button onClick={() => onSearch("")}>Xóa tìm kiếm</Button>}
+                            </div>
+                        )}
 
-                        {/* --- THANH PHÂN TRANG --- */}
-                        <div style={{ marginTop: 50, textAlign: 'center' }}>
-                            <Pagination 
-                                current={currentPage} 
-                                total={totalItems} 
-                                pageSize={pageSize}
-                                onChange={handlePageChange}
-                                showSizeChanger={false} 
-                            />
-                        </div>
+                        {/* 4. THANH PHÂN TRANG */}
+                        {totalItems > 0 && (
+                            <div style={{ marginTop: 50, textAlign: 'center' }}>
+                                <Pagination 
+                                    current={currentPage} 
+                                    total={totalItems} 
+                                    pageSize={pageSize}
+                                    onChange={handlePageChange}
+                                    showSizeChanger={false} 
+                                />
+                            </div>
+                        )}
                     </>
                 )}
             </div>
@@ -162,7 +194,7 @@ const HomePage = () => {
     );
 };
 
-// Component con ProductCard
+// --- COMPONENT CON: PRODUCT CARD ---
 const ProductCard = ({ product, imageUrl, navigate, onAdd }) => (
     <Card
         hoverable
@@ -185,7 +217,9 @@ const ProductCard = ({ product, imageUrl, navigate, onAdd }) => (
             <Title level={4} style={{ margin: 0, fontSize: 18 }} ellipsis>{product.name}</Title>
             <Text strong style={{ color: '#d48806', fontSize: 18 }}>{product.price.toLocaleString()}đ</Text>
         </div>
-        <Paragraph ellipsis={{ rows: 2 }} style={{ color: '#888', flex: 1, marginTop: 10 }}>{product.description}</Paragraph>
+        <Paragraph ellipsis={{ rows: 2 }} style={{ color: '#888', flex: 1, marginTop: 10 }}>
+            {product.description || "Chưa có mô tả"}
+        </Paragraph>
         
         <Button type="primary" icon={<ShoppingCartOutlined />} block size="large" onClick={() => onAdd(product)} style={{ marginTop: 10 }}>
             Thêm vào giỏ
