@@ -23,6 +23,9 @@ const HomePage = () => {
 
     // === API CHUẨN — KHÔNG LỖI MAP ===
     const fetchProducts = async (page, keyword) => {
+      console.log("SEARCH TERM:", searchTerm);
+console.log("API RESULT RAW:", response.data);
+
         try {
             setLoading(true);
 
@@ -85,6 +88,7 @@ const HomePage = () => {
             style: { marginTop: '20vh' },
         });
     };
+console.log("PRODUCTS TO RENDER:", products);
 
     return (
         <div>
