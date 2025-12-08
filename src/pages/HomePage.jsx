@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Col, Row, Button, Typography, Spin, message, Rate, Pagination, Skeleton, Badge } from 'antd'; // Thêm Pagination
+import { Card, Col, Row, Button, Typography, Spin, message, Rate, Pagination, Skeleton, Badge, Grid, Input } from 'antd'; // 1. Đã thêm Input
 import { ShoppingCartOutlined } from '@ant-design/icons';
 import api from '../services/api';
 import { addToCart } from '../utils/cart';
@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
 const { Title, Text, Paragraph } = Typography;
+const { useBreakpoint } = Grid;
 
 const HomePage = () => {
     const [products, setProducts] = useState([]);
@@ -15,17 +16,17 @@ const HomePage = () => {
     // --- State cho phân trang ---
     const [currentPage, setCurrentPage] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
-    const pageSize = 8; // Mỗi trang hiện 8 cái bánh
+    const pageSize = 8; 
     // ----------------------------
+    
     const navigate = useNavigate();
+    const screens = useBreakpoint();
+    const isMobile = !screens.md; // Kiểm tra màn hình nhỏ
 
     const fetchProducts = async (page) => {
         try {
             setLoading(true);
-            // Gọi API kèm tham số page và pageSize
             const response = await api.get(`/Products?page=${page}&pageSize=${pageSize}`);
-            
-            // Backend giờ trả về { Data: [], Total: ... } nên phải .Data
             setProducts(response.data.data || response.data); 
             setTotalItems(response.data.total || 0);
         } catch (error) {
@@ -35,14 +36,12 @@ const HomePage = () => {
         }
     };
 
-    // Khi trang load hoặc số trang thay đổi -> Gọi lại API
     useEffect(() => {
         fetchProducts(currentPage);
     }, [currentPage]);
 
     const handlePageChange = (page) => {
         setCurrentPage(page);
-        // Cuộn lên đầu trang cho mượt
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
@@ -54,22 +53,45 @@ const HomePage = () => {
         });
     };
 
+    // 2. Hàm xử lý tìm kiếm
+    const onSearch = (value) => {
+        if (!value) return;
+        message.loading(`Đang tìm kiếm: ${value}...`);
+        // Logic tìm kiếm: Bạn có thể navigate sang trang filter hoặc gọi API search
+        // Ví dụ: navigate(`/products?search=${value}`);
+        
+        // Tạm thời gọi API filter (bạn cần thay đổi logic này tùy theo backend của bạn)
+        // fetchProducts(1, value); 
+    };
+
     return (
         <div>
-            {/* Banner giữ nguyên */}
+            {/* 👇 3. THANH TÌM KIẾM CHO MOBILE (Chỉ hiện khi isMobile = true) 👇 */}
+            {isMobile && (
+                <div style={{ padding: '15px 20px', background: '#fff', position: 'sticky', top: 0, zIndex: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                    <Input.Search 
+                        placeholder="Bạn muốn ăn bánh gì?" 
+                        onSearch={onSearch} 
+                        enterButton 
+                        size="large" 
+                    />
+                </div>
+            )}
+            
+            {/* Banner */}
             <div style={{
                 background: 'linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url("https://images.unsplash.com/photo-1509365465985-25d11c17e812?q=80&w=1920")',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                height: '400px',
+                height: isMobile ? '250px' : '400px', // Điều chỉnh chiều cao banner trên mobile cho đẹp
                 display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
                 color: 'white', textAlign: 'center', marginBottom: '40px', borderRadius: '0 0 50% 50% / 20px'
             }}>
-                <h1 style={{ fontFamily: "'Pacifico', cursive", fontSize: '60px', margin: 0, textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}>Bakery Love</h1>
-                <p style={{ fontSize: '20px', maxWidth: '600px', margin: '10px 20px' }}>Đánh thức vị giác với những chiếc bánh ngọt ngào nhất.</p>
+                <h1 style={{ fontFamily: "'Pacifico', cursive", fontSize: isMobile ? '40px' : '60px', margin: 0, textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}>Bakery Love</h1>
+                <p style={{ fontSize: isMobile ? '16px' : '20px', maxWidth: '600px', margin: '10px 20px' }}>Đánh thức vị giác với những chiếc bánh ngọt ngào nhất.</p>
             </div>
 
-            <div style={{ padding: '0 50px 50px' }}>
+            <div style={{ padding: isMobile ? '0 20px 50px' : '0 50px 50px' }}>
                 <Title level={2} style={{ textAlign: 'center', marginBottom: 40, color: '#434343' }}>✨ Sản phẩm nổi bật ✨</Title>
 
                 {loading ? (
@@ -90,7 +112,6 @@ const HomePage = () => {
                                 const imageUrl = (!product.imageUrl || !product.imageUrl.startsWith('http')) 
                                     ? "https://placehold.co/300x200?text=No+Image" : product.imageUrl;
                                 
-                                // Random nhãn dán cho sinh động
                                 const ribbonText = index % 3 === 0 ? "Best Seller" : (index % 4 === 0 ? "New" : null);
                                 const ribbonColor = index % 3 === 0 ? "red" : "green";
 
@@ -101,7 +122,6 @@ const HomePage = () => {
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ duration: 0.5, delay: index * 0.1 }}
                                         >
-                                            {/* 2. Badge Ribbon (Nhãn dán) */}
                                             {ribbonText ? (
                                                 <Badge.Ribbon text={ribbonText} color={ribbonColor}>
                                                     <ProductCard 
@@ -125,14 +145,14 @@ const HomePage = () => {
                             })}
                         </Row>
 
-                        {/* --- THANH PHÂN TRANG Ở DƯỚI CÙNG --- */}
+                        {/* --- THANH PHÂN TRANG --- */}
                         <div style={{ marginTop: 50, textAlign: 'center' }}>
                             <Pagination 
                                 current={currentPage} 
                                 total={totalItems} 
                                 pageSize={pageSize}
                                 onChange={handlePageChange}
-                                showSizeChanger={false} // Tắt chọn số lượng/trang cho gọn
+                                showSizeChanger={false} 
                             />
                         </div>
                     </>
@@ -142,7 +162,7 @@ const HomePage = () => {
     );
 };
 
-// Tách nhỏ component Card ra cho code gọn
+// Component con ProductCard
 const ProductCard = ({ product, imageUrl, navigate, onAdd }) => (
     <Card
         hoverable
@@ -151,7 +171,6 @@ const ProductCard = ({ product, imageUrl, navigate, onAdd }) => (
         cover={
             <div 
                 style={{ overflow: 'hidden', height: 220, cursor: 'pointer' }}
-                // 👇 Bây giờ nó đã hiểu navigate là gì rồi
                 onClick={() => navigate(`/product/${product.id}`)} 
             >
                 <img alt={product.name} src={imageUrl} 
