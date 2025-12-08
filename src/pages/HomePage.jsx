@@ -11,57 +11,70 @@ const { useBreakpoint } = Grid;
 
 const HomePage = () => {
     // --- STATE ---
-    const [products, setProducts] = useState([]); // Luôn khởi tạo là mảng rỗng
+    // Khởi tạo products là mảng rỗng [] ngay từ đầu để tránh lỗi null.map
+    const [products, setProducts] = useState([]); 
     const [loading, setLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
-    const [searchTerm, setSearchTerm] = useState(""); // Lưu từ khóa tìm kiếm
+    const [searchTerm, setSearchTerm] = useState(""); 
     const pageSize = 8; 
 
-    // --- HOOKS ---
     const navigate = useNavigate();
     const screens = useBreakpoint();
-    const isMobile = !screens.md; // Kiểm tra màn hình nhỏ
+    const isMobile = !screens.md;
 
-    // --- HÀM GỌI API (ĐÃ NÂNG CẤP CHỐNG LỖI) ---
+    // --- HÀM GỌI API (ĐÃ NÂNG CẤP DEBUG) ---
     const fetchProducts = async (page, searchKeyword = searchTerm) => {
         try {
             setLoading(true);
             
-            // Xây dựng URL: Nếu có từ khóa thì thêm vào, không thì thôi
+            // Xây dựng URL
             const keywordParam = searchKeyword ? `&search=${encodeURIComponent(searchKeyword)}` : '';
             const url = `/Products?page=${page}&pageSize=${pageSize}${keywordParam}`;
             
+            console.log("Đang gọi API:", url); // Debug 1
             const response = await api.get(url);
-            
-            // 👇 LOGIC CHỐNG LỖI "TRẮNG TRANG" (QUAN TRỌNG)
-            // Kiểm tra mọi trường hợp: data thường, Data hoa, hoặc không có gì
-            const listData = response.data?.data || response.data?.Data || [];
-            
-            if (Array.isArray(listData)) {
-                setProducts(listData);
+            console.log("Dữ liệu API trả về:", response.data); // Debug 2
+
+            // 👇 LOGIC CHỐNG LỖI "MAP IS NOT A FUNCTION" (BẤT CHẤP API TRẢ VỀ GÌ)
+            let safeData = [];
+            let safeTotal = 0;
+
+            if (Array.isArray(response.data)) {
+                // Trường hợp 1: API trả về mảng trực tiếp [{}, {}]
+                safeData = response.data;
+                safeTotal = response.data.length;
+            } else if (response.data && Array.isArray(response.data.data)) {
+                // Trường hợp 2: API trả về { data: [], total: ... } (chữ thường)
+                safeData = response.data.data;
+                safeTotal = response.data.total || 0;
+            } else if (response.data && Array.isArray(response.data.Data)) {
+                // Trường hợp 3: API trả về { Data: [], Total: ... } (chữ Hoa - thường gặp ở C#)
+                safeData = response.data.Data;
+                safeTotal = response.data.Total || 0;
             } else {
-                // Nếu API trả về linh tinh không phải mảng -> Gán rỗng ngay
-                setProducts([]); 
+                // Trường hợp 4: API trả về null hoặc object rỗng -> Gán mảng rỗng
+                console.warn("API không trả về mảng! Gán mảng rỗng.");
+                safeData = [];
+                safeTotal = 0;
             }
 
-            setTotalItems(response.data?.total || response.data?.Total || 0);
+            setProducts(safeData);
+            setTotalItems(safeTotal);
 
         } catch (error) {
             console.error("Lỗi tải sản phẩm:", error);
-            setProducts([]); // Lỗi mạng cũng gán rỗng để không crash web
+            setProducts([]); // Nếu lỗi mạng, gán rỗng ngay
         } finally {
             setLoading(false);
         }
     };
 
-    // --- EFFECT: GỌI KHI ĐỔI TRANG ---
     useEffect(() => {
         fetchProducts(currentPage);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentPage]);
 
-    // --- HÀM XỬ LÝ ---
     const handlePageChange = (page) => {
         setCurrentPage(page);
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -76,15 +89,14 @@ const HomePage = () => {
     };
 
     const onSearch = (value) => {
-        setSearchTerm(value); // Lưu từ khóa
-        setCurrentPage(1);    // Reset về trang 1
-        fetchProducts(1, value); // Gọi API ngay lập tức
+        setSearchTerm(value);
+        setCurrentPage(1);
+        fetchProducts(1, value);
     };
 
-    // --- RENDER ---
     return (
         <div>
-            {/* 1. THANH TÌM KIẾM CHO MOBILE */}
+            {/* 1. THANH TÌM KIẾM MOBILE */}
             {isMobile && (
                 <div style={{ padding: '15px 20px', background: '#fff', position: 'sticky', top: 0, zIndex: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
                     <Input.Search 
@@ -114,7 +126,6 @@ const HomePage = () => {
                 <Title level={2} style={{ textAlign: 'center', marginBottom: 40, color: '#434343' }}>✨ Sản phẩm nổi bật ✨</Title>
 
                 {loading ? (
-                    // LOADING SKELETON
                     <Row gutter={[24, 32]}>
                         {[...Array(8)].map((_, i) => (
                             <Col xs={24} sm={12} md={8} lg={6} key={i}>
@@ -127,11 +138,11 @@ const HomePage = () => {
                     </Row>
                 ) : (
                     <>
-                        {/* 3. DANH SÁCH SẢN PHẨM (ĐÃ BẢO VỆ CHẶT CHẼ) */}
+                        {/* 3. DANH SÁCH SẢN PHẨM */}
+                        {/* Kiểm tra lần cuối: Phải là Array mới được render */}
                         {Array.isArray(products) && products.length > 0 ? (
                             <Row gutter={[24, 32]}>
                                 {products.map((product, index) => {
-                                    // Fallback ảnh nếu lỗi hoặc null
                                     const imageUrl = (!product.imageUrl || !product.imageUrl.startsWith('http')) 
                                         ? "https://placehold.co/300x200?text=No+Image" : product.imageUrl;
                                     
@@ -175,7 +186,7 @@ const HomePage = () => {
                             </div>
                         )}
 
-                        {/* 4. THANH PHÂN TRANG */}
+                        {/* 4. PHÂN TRANG */}
                         {totalItems > 0 && (
                             <div style={{ marginTop: 50, textAlign: 'center' }}>
                                 <Pagination 
@@ -194,7 +205,7 @@ const HomePage = () => {
     );
 };
 
-// --- COMPONENT CON: PRODUCT CARD ---
+// COMPONENT CON
 const ProductCard = ({ product, imageUrl, navigate, onAdd }) => (
     <Card
         hoverable
