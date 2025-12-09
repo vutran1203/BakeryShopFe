@@ -9,7 +9,7 @@ import {
     UserOutlined,
     MenuOutlined, SettingOutlined
 } from '@ant-design/icons';
-import { useNavigate, Outlet, useLocation } from 'react-router-dom';
+import { useNavigate, Outlet, useLocation, Link } from 'react-router-dom';
 import { HubConnectionBuilder } from '@microsoft/signalr';
 
 const { Header, Sider, Content } = Layout;
