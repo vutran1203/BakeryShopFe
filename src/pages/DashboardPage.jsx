@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Col, Row, Statistic, message } from 'antd';
-import { ShoppingCartOutlined, UserOutlined, DollarCircleOutlined, AppstoreOutlined } from '@ant-design/icons';
+import {
+    ShoppingCartOutlined,
+    UserOutlined,
+    DollarCircleOutlined,
+    AppstoreOutlined
+} from '@ant-design/icons';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import api from '../services/api';
 
@@ -13,18 +18,18 @@ const DashboardPage = () => {
     });
 
     useEffect(() => {
-        const fetchStats = async () => {
+        const loadStats = async () => {
             try {
                 const res = await api.get('/Dashboard/summary');
                 setStats(res.data);
-            } catch (err) {
+            } catch (e) {
                 message.error("Lỗi tải thống kê!");
             }
         };
-        fetchStats();
+
+        loadStats();
     }, []);
 
-    // Dữ liệu giả lập cho biểu đồ (Vì DB chưa đủ dữ liệu theo ngày)
     const dataChart = [
         { name: 'T1', doanhThu: 4000000 },
         { name: 'T2', doanhThu: 3000000 },
@@ -32,72 +37,68 @@ const DashboardPage = () => {
         { name: 'T4', doanhThu: 2780000 },
         { name: 'T5', doanhThu: 1890000 },
         { name: 'T6', doanhThu: 2390000 },
-        { name: 'T7', doanhThu: 3490000 },
+        { name: 'T7', doanhThu: 3490000 }
     ];
 
     return (
         <div style={{ padding: 20 }}>
             <h2>📊 Tổng quan hệ thống</h2>
-            
-            {/* Phần thẻ số liệu */}
+
             <Row gutter={16} style={{ marginBottom: 30 }}>
                 <Col span={6}>
-                    <Card bordered={false}>
-                        <Statistic 
-                            title="Doanh thu" 
-                            value={stats.totalRevenue} 
-                            prefix={<DollarCircleOutlined />} 
-                            suffix="đ" 
-                            valueStyle={{ color: '#3f8600' }}
+                    <Card variant="bordered">
+                        <Statistic
+                            title="Doanh thu"
+                            value={stats.totalRevenue}
+                            prefix={<DollarCircleOutlined />}
+                            suffix="đ"
+                            styles={{ content: { color: "#3f8600" } }}
                         />
                     </Card>
                 </Col>
+
                 <Col span={6}>
-                    <Card bordered={false}>
-                        <Statistic 
-                            title="Đơn hàng" 
-                            value={stats.totalOrders} 
-                            prefix={<ShoppingCartOutlined />} 
-                            valueStyle={{ color: '#cf1322' }}
+                    <Card variant="bordered">
+                        <Statistic
+                            title="Đơn hàng"
+                            value={stats.totalOrders}
+                            prefix={<ShoppingCartOutlined />}
+                            styles={{ content: { color: "#cf1322" } }}
                         />
                     </Card>
                 </Col>
+
                 <Col span={6}>
-                    <Card bordered={false}>
-                        <Statistic 
-                            title="Sản phẩm" 
-                            value={stats.totalProducts} 
-                            prefix={<AppstoreOutlined />} 
-                            valueStyle={{ color: '#1677ff' }}
+                    <Card variant="bordered">
+                        <Statistic
+                            title="Sản phẩm"
+                            value={stats.totalProducts}
+                            prefix={<AppstoreOutlined />}
+                            styles={{ content: { color: "#1677ff" } }}
                         />
                     </Card>
                 </Col>
+
                 <Col span={6}>
-                    <Card bordered={false}>
-                        <Statistic 
-                            title="Khách hàng" 
-                            value={stats.totalUsers} 
-                            prefix={<UserOutlined />} 
-                        />
+                    <Card variant="bordered">
+                        <Statistic title="Khách hàng" value={stats.totalUsers} prefix={<UserOutlined />} />
                     </Card>
                 </Col>
             </Row>
 
-            {/* Phần biểu đồ */}
-            <Card title="Biểu đồ doanh thu tuần qua ">
-                <div style={{ width: '100%', height: 300, minHeight: 300 }}>
-                    <ResponsiveContainer>
-                        <BarChart data={dataChart}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="name" />
-                            <YAxis />
-                            <Tooltip formatter={(value) => new Intl.NumberFormat('vi-VN').format(value) + ' đ'} />
-                            <Legend />
-                            <Bar dataKey="doanhThu" name="Doanh thu" fill="#8884d8" />
-                        </BarChart>
-                    </ResponsiveContainer>
-                </div>
-            </Card>
+            <Card title="Biểu đồ doanh thu tuần qua">
+  <ResponsiveContainer width="100%" height={300}>
+    <BarChart data={dataChart}>
+      <CartesianGrid strokeDasharray="3 3" />
+      <XAxis dataKey="name" />
+      <YAxis />
+      <Tooltip formatter={(value) => new Intl.NumberFormat('vi-VN').format(value) + ' đ'} />
+      <Legend />
+      <Bar dataKey="doanhThu" fill="#8884d8" />
+    </BarChart>
+  </ResponsiveContainer>
+</Card>
+
         </div>
     );
 };

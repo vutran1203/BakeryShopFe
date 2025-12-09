@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Menu, Button, Badge, Input, Avatar, Dropdown, Space, theme, message, Drawer, List, Typography, Grid } from 'antd';
+import { Menu, Button, Badge, Input, Avatar, Dropdown, Space, theme, message, Drawer, List, Typography, Grid, App } from 'antd';
 import { 
     HomeOutlined, HistoryOutlined, LogoutOutlined, AppstoreOutlined, 
     ShoppingCartOutlined, DeleteOutlined, UserOutlined, 
@@ -15,6 +15,7 @@ const Header = ({ siteInfo }) => {
     const screens = useBreakpoint();
     const navigate = useNavigate();
     const location = useLocation();
+    
     
     // --- STATE ---
     const [user, setUser] = useState(null);
@@ -159,7 +160,15 @@ const Header = ({ siteInfo }) => {
             </div>
 
             {/* MOBILE MENU DRAWER */}
-            <Drawer title="Menu" placement="left" onClose={() => setOpenMobileMenu(false)} open={openMobileMenu} width={250} bodyStyle={{ padding: 0 }}>
+            <Drawer 
+                title="Menu"
+                placement="left"
+                onClose={() => setOpenMobileMenu(false)}
+                open={openMobileMenu}
+                size="default"
+                styles={{
+                    body: { padding: 0 },
+                    content: { width: 250 }}}>
                 <div style={{ padding: 20 }}>
                     <Input.Search placeholder="Tìm kiếm..." onSearch={(val) => { if(val.trim()) { navigate(`/?q=${encodeURIComponent(val)}`); setOpenMobileMenu(false); } }} />
                 </div>
@@ -169,20 +178,34 @@ const Header = ({ siteInfo }) => {
             {/* CART DRAWER */}
             <Drawer
                 title={`Giỏ hàng (${cartCount} món)`}
-                placement="right"
-                onClose={() => setOpenDrawer(false)}
-                open={openDrawer}
-                width={isMobile ? '85%' : 400}
-                footer={ 
-                    <div style={{ textAlign: 'right' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 15, fontSize: 16, fontWeight: 'bold' }}>
-                            <span>Tạm tính:</span>
-                            <span style={{ color: colorPrimary }}>{subTotal.toLocaleString()} đ</span>
-                        </div>
-                        <Button type="primary" block size="large" onClick={() => { setOpenDrawer(false); navigate('/cart'); }}>
-                            Xem giỏ hàng & Thanh toán
-                        </Button>
-                    </div>
+    placement="right"
+    onClose={() => setOpenDrawer(false)}
+    open={openDrawer}
+    size="default"
+    styles={{
+        content: { width: isMobile ? '85%' : 400 }
+    }}
+    footer={
+        <div style={{ textAlign: 'right' }}>
+            <div style={{ 
+                display: 'flex',
+                justifyContent: 'space-between',
+                marginBottom: 15,
+                fontSize: 16,
+                fontWeight: 'bold'
+            }}>
+                <span>Tạm tính:</span>
+                <span style={{ color: colorPrimary }}>{subTotal.toLocaleString()} đ</span>
+            </div>
+            <Button 
+                type="primary" 
+                block 
+                size="large" 
+                onClick={() => { setOpenDrawer(false); navigate('/cart'); }}
+            >
+                Xem giỏ hàng & Thanh toán
+            </Button>
+        </div>
                 }
             >
                 {cartItems.length === 0 ? (

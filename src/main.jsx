@@ -1,8 +1,9 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App.jsx'
+import React from 'react';
+import ReactDOM from 'react-dom/client';
 import './index.css'
-import { ConfigProvider } from 'antd'; // Import này
+import App from './App.jsx';
+import { BrowserRouter } from "react-router-dom";
+import { ConfigProvider, App as AntdApp } from "antd";
 
 // Bảng màu Bakery
 const bakeryTheme = {
@@ -24,9 +25,12 @@ const bakeryTheme = {
 };
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <ConfigProvider theme={bakeryTheme}> {/* Áp dụng theme */}
-      <App />
+    <ConfigProvider theme={bakeryTheme}>
+      <AntdApp> 
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </AntdApp>
     </ConfigProvider>
-  </React.StrictMode>,
+
 )

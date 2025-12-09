@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Table, Button, InputNumber, Card, Typography, message, Form, Input, Modal } from 'antd';
-import { DeleteOutlined, CreditCardOutlined } from '@ant-design/icons';
+import { DeleteOutlined, CreditCardOutlined, FacebookOutlined   } from '@ant-design/icons';
 import { getCart, updateQuantity, removeFromCart, clearCart } from '../utils/cart';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import api from '../services/api';
 
 const { Title } = Typography;
@@ -11,6 +11,7 @@ const CartPage = () => {
     const [cartItems, setCartItems] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const navigate = useNavigate();
+    const { siteInfo } = useOutletContext() || {};
 
     // Load giỏ hàng mỗi khi vào trang
     useEffect(() => {
@@ -20,11 +21,37 @@ const CartPage = () => {
     // Tính tổng tiền
     const totalAmount = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
+    // 👇 HÀM XỬ LÝ GỬI ĐƠN QUA FACEBOOK
+    const handleContactOrder = () => {
+        if (cartItems.length === 0) return message.warning("Giỏ hàng đang trống!");
+
+        // 1. Soạn nội dung tin nhắn chi tiết
+        let msg = `👋 Chào shop, mình muốn đặt đơn hàng gồm:\n`;
+        msg += `--------------------------------\n`;
+        
+        cartItems.forEach((item, index) => {
+            msg += `${index + 1}. ${item.name} \n   SL: ${item.quantity} x ${item.price.toLocaleString()}đ\n`;
+        });
+        
+        msg += `--------------------------------\n`;
+        msg += `💰 TỔNG TẠM TÍNH: ${totalAmount.toLocaleString()}đ\n`;
+        msg += `Shop tư vấn và giao hàng giúp mình nhé!`;
+
+        // 2. Copy vào Clipboard
+        navigator.clipboard.writeText(msg);
+        message.success("Đã copy đơn hàng! Dán vào Messenger nhé 💬");
+
+        // 3. Mở Messenger
+        const link = siteInfo?.facebookUrl;
+        window.open(link, '_blank');
+    };
+
     // Xử lý thay đổi số lượng
     const handleQuantity = (id, value) => {
         updateQuantity(id, value);
         setCartItems(getCart()); // Load lại state để giao diện cập nhật
     };
+    
 
     // Xử lý xóa
     const handleDelete = (id) => {
@@ -95,9 +122,36 @@ const CartPage = () => {
             {cartItems.length > 0 ? (
                 <Card style={{ marginTop: 20, textAlign: 'right' }}>
                     <Title level={4}>Tổng cộng: <span style={{color: '#d48806'}}>{totalAmount.toLocaleString()} đ</span></Title>
-                    <Button type="primary" size="large" icon={<CreditCardOutlined />} onClick={() => setIsModalOpen(true)} disabled={true}>
-                        Tiến hành Thanh toán (Tạm ngưng)
-                    </Button>
+                    
+                        <div style={{ display: 'flex', gap: 12, marginTop: 10 }}>
+    <Button
+        type="primary"
+        icon={<FacebookOutlined />}
+        onClick={handleContactOrder}
+        style={{
+            background: '#1877F2',
+            height: 50,
+            fontSize: 16,
+            flex: 1   // chiếm 50%
+        }}
+    >
+        Gửi đơn qua Messenger
+    </Button>
+
+    <Button
+        type="primary"
+        icon={<CreditCardOutlined />}
+        size="large"
+        disabled={true}
+        style={{
+            height: 50,
+            fontSize: 16,
+            flex: 1   // chiếm 50%
+        }}
+    >
+        Tiến hành Thanh toán (Tạm ngưng)
+    </Button>
+</div>
                 </Card>
             ) : (
                 <div style={{ textAlign: 'center', margin: 50, color: '#888' }}>Giỏ hàng đang trống trơn... 😢</div>

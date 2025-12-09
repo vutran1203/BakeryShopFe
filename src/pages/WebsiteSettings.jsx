@@ -34,6 +34,8 @@ const WebsiteSettings = () => {
             formData.append('AboutUsTitle', values.aboutUsTitle || "");
             formData.append('AboutUsContent', values.aboutUsContent || "");
 
+            formData.append('FacebookUrl', values.facebookUrl || "");
+
             // 2. XỬ LÝ ẢNH (Chỉ append khi có file thực sự)
             // Ant Design Upload đôi khi trả về mảng rỗng hoặc file ảo, cần check kỹ
             
@@ -84,6 +86,9 @@ const WebsiteSettings = () => {
                 <>
                     <Form.Item label="Tên Cửa Hàng" name="shopName"><Input /></Form.Item>
                     <Form.Item label="Slogan (Banner)" name="slogan"><Input /></Form.Item>
+                    <Form.Item label="Link Facebook Messenger" name="facebookUrl">
+                        <Input placeholder="https://m.me/..." />
+                    </Form.Item>
                     <div style={{display:'flex', gap: 20}}>
                         <Form.Item label="Logo" name="logoFile">
                             <Upload maxCount={1} beforeUpload={() => false} listType="picture"><Button icon={<UploadOutlined />}>Đổi Logo</Button></Upload>
@@ -93,6 +98,7 @@ const WebsiteSettings = () => {
                             <Upload maxCount={1} beforeUpload={() => false} listType="picture"><Button icon={<UploadOutlined />}>Đổi Banner</Button></Upload>
                             {currentInfo?.bannerUrl && <Image width={150} src={currentInfo.bannerUrl} />}
                         </Form.Item>
+                        
                     </div>
                 </>
             )
