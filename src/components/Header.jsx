@@ -1,34 +1,32 @@
 import React, { useEffect, useState } from 'react';
-import { Menu, Button, Badge, Input, Avatar, Dropdown, Space, theme, message, Drawer, List, Typography, Grid} from 'antd';
+import { Menu, Button, Badge, Input, Avatar, Dropdown, Space, theme, message, Drawer, List, Typography, Grid } from 'antd';
 import { 
     HomeOutlined, HistoryOutlined, LogoutOutlined, AppstoreOutlined, 
-    ShoppingCartOutlined, SearchOutlined, DeleteOutlined, UserOutlined, 
+    ShoppingCartOutlined, DeleteOutlined, UserOutlined, 
     MenuOutlined 
 } from '@ant-design/icons';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { getCart, removeFromCart } from '../utils/cart';
 
 const { useBreakpoint } = Grid;
-const { Text } = Typography;
 
-const Header = () => {
+// Nhận siteInfo từ props (được truyền từ MainLayout)
+const Header = ({ siteInfo }) => {
     const screens = useBreakpoint();
     const navigate = useNavigate();
     const location = useLocation();
     
-    // --- KHAI BÁO STATE (Đã thêm cartItems) ---
+    // --- STATE ---
     const [user, setUser] = useState(null);
-    const [cartItems, setCartItems] = useState([]); // Chứa dữ liệu giỏ hàng
+    const [cartItems, setCartItems] = useState([]); 
     const [cartCount, setCartCount] = useState(0); 
     const [openDrawer, setOpenDrawer] = useState(false);
     const [openMobileMenu, setOpenMobileMenu] = useState(false); 
-    // ------------------------------------------
-
+    
     const { token: { colorPrimary } } = theme.useToken();
     const isMobile = !screens.md;
     const subTotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
-    // Hàm load lại giỏ hàng từ LocalStorage
     const refreshCart = () => {
         const cart = getCart();
         setCartItems(cart);
@@ -48,7 +46,6 @@ const Header = () => {
 
         refreshCart();
 
-        // Lắng nghe sự kiện thay đổi giỏ hàng (từ cart.js)
         const handleOpenDrawer = () => setOpenDrawer(true);
         window.addEventListener('storage', refreshCart);
         window.addEventListener('open_cart_drawer', handleOpenDrawer);
@@ -62,8 +59,7 @@ const Header = () => {
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        localStorage.removeItem('admin_notifications'); // Clear admin noti
-        // Giỏ hàng được giữ lại (hoặc chuyển về giỏ khách vãng lai)
+        localStorage.removeItem('admin_notifications');
         setUser(null);
         message.success("Đăng xuất thành công");
         navigate('/login');
@@ -75,7 +71,6 @@ const Header = () => {
         message.success("Đã xóa món khỏi giỏ");
     };
 
-    // Menu dropdown cho User (Lịch sử, Admin, Logout)
     const userMenuItems = [
         user && { key: '1', label: <Link to="/my-orders">Lịch sử đơn hàng</Link>, icon: <HistoryOutlined /> },
         (user && user.role === 'Admin') && { key: '2', label: <Link to="/admin">Trang quản trị</Link>, icon: <AppstoreOutlined /> },
@@ -83,7 +78,6 @@ const Header = () => {
         user && { key: '3', label: 'Đăng xuất', icon: <LogoutOutlined />, danger: true, onClick: handleLogout },
     ].filter(Boolean);
 
-    // Menu chính cho Mobile và Desktop
     const mainMenuItems = [
         { label: <Link to="/">Trang chủ</Link>, key: '/' },
         { label: <Link to="/products">Sản phẩm</Link>, key: '/products' },
@@ -98,27 +92,44 @@ const Header = () => {
                 boxShadow: '0 2px 8px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center',
                 justifyContent: 'space-between', padding: isMobile ? '0 20px' : '0 50px', boxSizing: 'border-box'
             }}>
-                {/* 1. LOGO & HAMBURGER */}
+                {/* 1. LOGO & HAMBURGER (DÙNG DỮ LIỆU ĐỘNG) */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     {isMobile && (
                         <Button type="text" icon={<MenuOutlined style={{ fontSize: 20 }} />} onClick={() => setOpenMobileMenu(true)} />
                     )}
-                    <div onClick={() => navigate('/')} style={{ fontFamily: "'Pacifico', cursive", fontSize: isMobile ? '24px' : '28px', color: colorPrimary, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        {isMobile ? 'Bakery' : '🍰 BakeryShop'}
+                    <div onClick={() => navigate('/')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        {/* Nếu có LogoUrl thì hiện ảnh, không thì hiện icon bánh */}
+                        {siteInfo?.logoUrl ? (
+                            <img src={siteInfo.logoUrl} alt="Logo" style={{ height: 40, objectFit: 'contain' }} />
+                        ) : (
+                            <span style={{ fontSize: 24 }}>🍰</span>
+                        )}
+                        
+                        <span style={{ fontFamily: "'Pacifico', cursive", fontSize: isMobile ? '20px' : '24px', color: colorPrimary }}>
+                            {siteInfo?.shopName || "Bakery Shop"}
+                        </span>
                     </div>
                 </div>
 
-                {/* 2. SEARCH & MENU (DESKTOP ONLY) */}
+                {/* 2. SEARCH & MENU (DESKTOP) */}
                 {!isMobile && (
                     <>
                         <div style={{ flex: 1, maxWidth: '400px', margin: '0 40px' }}>
-                            <Input.Search placeholder="Tìm kiếm bánh..." allowClear onSearch={(val) => val.trim() && navigate(`/search?q=${val}`)} style={{ borderRadius: '20px' }} size="large" />
+                            <Input.Search 
+                                placeholder="Tìm kiếm bánh..." 
+                                allowClear 
+                                onSearch={(val) => {
+                                    // Sửa lại dùng tham số 'q' cho chuẩn code mới
+                                    if(val.trim()) navigate(`/?q=${encodeURIComponent(val)}`) 
+                                }} 
+                                style={{ borderRadius: '20px' }} size="large" 
+                            />
                         </div>
-                        <Menu mode="horizontal" selectedKeys={[location.pathname]} items={mainMenuItems} style={{ borderBottom: 'none', background: 'transparent', width: '300px', fontSize: '16px', fontWeight: 500 }} />
+                        <Menu mode="horizontal" selectedKeys={[location.pathname]} items={mainMenuItems} style={{ borderBottom: 'none', background: 'transparent', minWidth: '300px', fontSize: '16px', fontWeight: 500 }} />
                     </>
                 )}
 
-                {/* 3. ACTIONS (CART + USER) */}
+                {/* 3. ACTIONS */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '15px' : '25px' }}>
                     <Badge count={cartCount} showZero color={colorPrimary}>
                         <Button type="text" shape="circle" icon={<ShoppingCartOutlined style={{ fontSize: '22px' }} />} onClick={() => setOpenDrawer(true)} />
@@ -147,28 +158,28 @@ const Header = () => {
                 </div>
             </div>
 
-            {/* --- DRAWER DÀNH CHO MENU MOBILE --- */}
+            {/* MOBILE MENU DRAWER */}
             <Drawer title="Menu" placement="left" onClose={() => setOpenMobileMenu(false)} open={openMobileMenu} width={250} bodyStyle={{ padding: 0 }}>
+                <div style={{ padding: 20 }}>
+                    <Input.Search placeholder="Tìm kiếm..." onSearch={(val) => { if(val.trim()) { navigate(`/?q=${encodeURIComponent(val)}`); setOpenMobileMenu(false); } }} />
+                </div>
                 <Menu mode="inline" items={mainMenuItems} selectedKeys={[location.pathname]} onClick={() => setOpenMobileMenu(false)} />
             </Drawer>
             
-            {/* --- DRAWER DÀNH CHO GIỎ HÀNG (CART) --- */}
+            {/* CART DRAWER */}
             <Drawer
                 title={`Giỏ hàng (${cartCount} món)`}
                 placement="right"
                 onClose={() => setOpenDrawer(false)}
                 open={openDrawer}
-                width={400}
+                width={isMobile ? '85%' : 400}
                 footer={ 
                     <div style={{ textAlign: 'right' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 15, fontSize: 16, fontWeight: 'bold' }}>
                             <span>Tạm tính:</span>
                             <span style={{ color: colorPrimary }}>{subTotal.toLocaleString()} đ</span>
                         </div>
-                        <Button type="primary" block size="large" onClick={() => {
-                            setOpenDrawer(false);
-                            navigate('/cart');
-                        }}>
+                        <Button type="primary" block size="large" onClick={() => { setOpenDrawer(false); navigate('/cart'); }}>
                             Xem giỏ hàng & Thanh toán
                         </Button>
                     </div>
@@ -181,11 +192,7 @@ const Header = () => {
                         itemLayout="horizontal"
                         dataSource={cartItems}
                         renderItem={(item) => (
-                            <List.Item
-                                actions={[
-                                    <Button type="text" danger icon={<DeleteOutlined />} onClick={() => handleDeleteItem(item.id)} />
-                                ]}
-                            >
+                            <List.Item actions={[<Button type="text" danger icon={<DeleteOutlined />} onClick={() => handleDeleteItem(item.id)} />]}>
                                 <List.Item.Meta
                                     avatar={<Avatar src={item.imageUrl} shape="square" size={60} />}
                                     title={<Typography.Text strong>{item.name}</Typography.Text>}

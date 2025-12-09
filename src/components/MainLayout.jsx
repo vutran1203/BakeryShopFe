@@ -1,41 +1,87 @@
 import React, { useEffect, useState } from 'react';
-import { Layout } from 'antd';
+import { Layout, Spin } from 'antd';
 import { Outlet } from 'react-router-dom';
+import Header from '../components/Header'; // Import Header vừa sửa
 import api from '../services/api';
 
 const { Footer, Content } = Layout;
 
 const MainLayout = () => {
-    const [info, setInfo] = useState(null);
+    const [siteInfo, setSiteInfo] = useState(null);
+    const [loadingInfo, setLoadingInfo] = useState(true);
 
-    // Gọi API 1 lần duy nhất ở đây
+    // Gọi API lấy thông tin website (1 lần duy nhất khi vào web)
     useEffect(() => {
-        api.get('/WebsiteInfo').then(res => setInfo(res.data)).catch(console.error);
+        const fetchSiteInfo = async () => {
+            try {
+                const res = await api.get('/WebsiteInfo');
+                setSiteInfo(res.data);
+            } catch (error) {
+                console.error("Lỗi tải thông tin web:", error);
+                // Nếu lỗi thì set mặc định để không trắng trang
+                setSiteInfo({
+                    shopName: "Bakery Love",
+                    footerContent: "© 2025 All Rights Reserved.",
+                    address: "Đang cập nhật...",
+                    contactPhone: "..."
+                });
+            } finally {
+                setLoadingInfo(false);
+            }
+        };
+        fetchSiteInfo();
     }, []);
 
+    // Hiển thị loading nhẹ nếu chưa có thông tin
+    if (loadingInfo && !siteInfo) return <div style={{height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center'}}><Spin size="large" /></div>;
+
     return (
-        <Layout style={{ minHeight: '100vh' }}>
-            {/* Header của bạn ở đây */}
+        <Layout style={{ minHeight: '100vh', background: '#fff' }}>
+            {/* Truyền siteInfo xuống Header để hiện Logo/Tên */}
+            <Header siteInfo={siteInfo} />
             
-            <Content>
-                {/* Truyền biến info xuống cho HomePage dùng */}
-                <Outlet context={{ siteInfo: info }} />
+            <Content style={{ minHeight: '80vh' }}>
+                {/* Truyền siteInfo xuống các trang con (HomePage, AboutPage) */}
+                <Outlet context={{ siteInfo }} /> 
             </Content>
 
-            {/* FOOTER ĐỘNG */}
-            <Footer style={{ textAlign: 'center', background: '#222', color: '#fff', padding: '40px 0' }}>
-                <h2 style={{ color: '#d48806', fontFamily: 'Pacifico', fontSize: 24 }}>
-                    {info?.shopName || "Loading..."}
-                </h2>
-                <div style={{ opacity: 0.8, marginTop: 10 }}>
-                    <p>📍 {info?.address}</p>
-                    <p>📞 {info?.contactPhone} | 📧 {info?.contactEmail}</p>
+            {/* FOOTER ĐỘNG (Lấy từ siteInfo) */}
+            <Footer style={{ 
+                textAlign: 'center', 
+                padding: '40px 20px', 
+                background: '#2d3436', 
+                color: '#dfe6e9',
+                marginTop: 'auto' 
+            }}>
+                <div style={{ 
+                    fontSize: 24, 
+                    fontFamily: "'Pacifico', cursive", 
+                    marginBottom: 10, 
+                    color: '#d48806' 
+                }}>
+                    {siteInfo?.shopName || "Bakery Love"}
                 </div>
-                <div style={{ borderTop: '1px solid #444', marginTop: 20, paddingTop: 10, fontSize: 12 }}>
-                    {info?.footerContent}
+                
+                <div style={{ fontSize: 14, lineHeight: '1.6', opacity: 0.9 }}>
+                    <p style={{ margin: 5 }}>📍 Địa chỉ: {siteInfo?.address || "Đang cập nhật..."}</p>
+                    <p style={{ margin: 5 }}>📞 Hotline: {siteInfo?.contactPhone} | 📧 Email: {siteInfo?.contactEmail}</p>
+                </div>
+
+                <div style={{ 
+                    marginTop: 20, 
+                    borderTop: '1px solid #444', 
+                    paddingTop: 20, 
+                    fontSize: 12, 
+                    color: '#636e72',
+                    maxWidth: 600,
+                    marginLeft: 'auto',
+                    marginRight: 'auto'
+                }}>
+                    {siteInfo?.footerContent || "© 2025 BakeryShop. All rights reserved."}
                 </div>
             </Footer>
         </Layout>
     );
 };
+
 export default MainLayout;
