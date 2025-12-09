@@ -25,50 +25,49 @@ const HomePage = () => {
     // --------------------------
     // FETCH PRODUCTS
     // --------------------------
-const fetchProducts = async (page, keyword) => {
-    try {
-        setLoading(true);
+    const fetchProducts = async (page, keyword) => {
+        try {
+            setLoading(true);
 
-        const keywordParam = keyword ? `&search=${encodeURIComponent(keyword)}` : "";
-        const url = `/Products?page=${page}&pageSize=${pageSize}${keywordParam}`;
+            const keywordParam = keyword ? `&search=${encodeURIComponent(keyword)}` : "";
+            const url = `/Products?page=${page}&pageSize=${pageSize}${keywordParam}`;
+            console.log("Fetching:", url);
 
-        const response = await api.get(url);
-        const payload = response.data;
+            const response = await api.get(url);
+            const payload = response.data;
 
-        // ⭐ CHÍNH XÁC TUYỆT ĐỐI THEO BACKEND
-        const safeData = Array.isArray(payload?.data) ? payload.data : [];
-        const safeTotal = Number(payload?.total ?? safeData.length);
+            // API TRẢ VỀ DẠNG:
+            // { data: [...], total: number, page: number, pageSize: number }
+            const safeData = Array.isArray(payload?.data) ? payload.data : [];
+            const safeTotal = Number(payload?.total ?? safeData.length);
 
-        setProducts(safeData);
-        setTotalItems(safeTotal);
+            setProducts(safeData);
+            setTotalItems(safeTotal);
 
-    } catch (err) {
-        console.error("Fetch error:", err);
-        setProducts([]);
-    } finally {
-        setLoading(false);
-    }
-};
-
-
+        } catch (err) {
+            console.error("Fetch error:", err);
+            setProducts([]);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     // --------------------------
-    // Update searchTerm khi URL đổi
+    // LẤY SEARCH PARAM TỪ URL
     // --------------------------
     useEffect(() => {
         const params = new URLSearchParams(location.search);
-        const searchFromUrl = params.get('q') || params.get('search') || "";
-
-        setSearchTerm(searchFromUrl);
-        setCurrentPage(1);
+        const searchFromUrl = params.get('q') || "";
+        setSearchTerm(searchFromUrl);     // Cập nhật ô tìm kiếm
+        setCurrentPage(1);                // Reset trang mỗi lần search URL thay đổi
     }, [location.search]);
 
     // --------------------------
-    // Fetch khi page hoặc searchTerm đổi
+    // FETCH DỮ LIỆU KHI URL HOẶC PAGE THAY ĐỔI
     // --------------------------
     useEffect(() => {
         fetchProducts(currentPage, searchTerm);
-    }, [currentPage, searchTerm]);
+    }, [currentPage, location.search]);
 
     // --------------------------
     // HANDLERS
@@ -101,11 +100,10 @@ const fetchProducts = async (page, keyword) => {
                 <div style={{ padding: "15px 20px", background: "#fff", position: "sticky", top: 0, zIndex: 10 }}>
                     <Input.Search
                         placeholder="Bạn muốn ăn bánh gì?"
-                        onSearch={onSearch}
                         allowClear
                         size="large"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        defaultValue={searchTerm}
+                        onSearch={onSearch}      // CHỈ FETCH KHI ENTER
                     />
                 </div>
             )}
@@ -130,7 +128,7 @@ const fetchProducts = async (page, keyword) => {
             {/* PRODUCT LIST */}
             <div style={{ padding: isMobile ? "0 20px 50px" : "0 50px 50px" }}>
                 <Title level={2} style={{ textAlign: "center", marginBottom: 40 }}>
-                    {searchTerm ? `Kết quả cho: "${searchTerm}"` : "✨ Sản phẩm nổi bật ✨"}
+                    {searchTerm ? `Kết quả tìm kiếm: "${searchTerm}"` : "✨ Sản phẩm nổi bật ✨"}
                 </Title>
 
                 {loading ? (
@@ -154,11 +152,8 @@ const fetchProducts = async (page, keyword) => {
                                             : product.imageUrl;
 
                                     const ribbonText =
-                                        index % 3 === 0
-                                            ? "Best Seller"
-                                            : index % 4 === 0
-                                            ? "New"
-                                            : null;
+                                        index % 3 === 0 ? "Best Seller" :
+                                        index % 4 === 0 ? "New" : null;
 
                                     const card = (
                                         <ProductCard
