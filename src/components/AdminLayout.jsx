@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Layout, Menu, notification, Badge, Popover, List, Avatar, Typography, Button, Grid, Space, SettingOutlined } from 'antd';
+import { Layout, Menu, notification, Badge, Popover, List, Avatar, Typography, Button, Grid, Space } from 'antd';
 import { 
     DashboardOutlined, 
     ShopOutlined, 
@@ -7,7 +7,7 @@ import {
     ShoppingCartOutlined,
     BellOutlined,     
     UserOutlined,
-    MenuOutlined
+    MenuOutlined, SettingOutlined
 } from '@ant-design/icons';
 import { useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { HubConnectionBuilder } from '@microsoft/signalr';
