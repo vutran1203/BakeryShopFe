@@ -25,31 +25,32 @@ const HomePage = () => {
     // --------------------------
     // FETCH PRODUCTS
     // --------------------------
-    const fetchProducts = async (page, keyword) => {
-        try {
-            setLoading(true);
+const fetchProducts = async (page, keyword) => {
+    try {
+        setLoading(true);
 
-            const keywordParam = keyword ? `&search=${encodeURIComponent(keyword)}` : "";
-            const url = `/Products?page=${page}&pageSize=${pageSize}${keywordParam}`;
-            console.log("Fetching URL:", url);
+        const keywordParam = keyword ? `&search=${encodeURIComponent(keyword)}` : "";
+        const url = `/Products?page=${page}&pageSize=${pageSize}${keywordParam}`;
 
-            const response = await api.get(url);
-            const payload = response.data;
+        const response = await api.get(url);
+        const payload = response.data;
 
-            // API ĐÚNG CỦA BẠN TRẢ: { items, totalRecords, pageIndex, ... }
-            const safeData = Array.isArray(payload?.items) ? payload.items : [];
-            const safeTotal = Number(payload?.totalRecords ?? safeData.length);
+        // ⭐ CHÍNH XÁC TUYỆT ĐỐI THEO BACKEND
+        const safeData = Array.isArray(payload?.data) ? payload.data : [];
+        const safeTotal = Number(payload?.total ?? safeData.length);
 
-            setProducts(safeData);
-            setTotalItems(safeTotal);
+        setProducts(safeData);
+        setTotalItems(safeTotal);
 
-        } catch (err) {
-            console.error("Fetch error:", err);
-            setProducts([]);
-        } finally {
-            setLoading(false);
-        }
-    };
+    } catch (err) {
+        console.error("Fetch error:", err);
+        setProducts([]);
+    } finally {
+        setLoading(false);
+    }
+};
+
+
 
     // --------------------------
     // Update searchTerm khi URL đổi
