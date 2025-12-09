@@ -1,32 +1,41 @@
-import React from 'react';
-import Header from './Header'; // Header bán hàng cũ của bạn
+import React, { useEffect, useState } from 'react';
+import { Layout } from 'antd';
 import { Outlet } from 'react-router-dom';
+import api from '../services/api';
+
+const { Footer, Content } = Layout;
 
 const MainLayout = () => {
+    const [info, setInfo] = useState(null);
+
+    // Gọi API 1 lần duy nhất ở đây
+    useEffect(() => {
+        api.get('/WebsiteInfo').then(res => setInfo(res.data)).catch(console.error);
+    }, []);
+
     return (
-        <div>
-            <Header />
-            <div style={{ minHeight: '80vh' }}>
-                <Outlet /> {/* Nơi hiển thị HomePage, CartPage... */}
-            </div>
-            <div style={{ 
-    textAlign: 'center', 
-    padding: '40px 20px', 
-    background: '#2d3436', 
-    color: '#dfe6e9',
-    marginTop: 'auto' // Đẩy footer xuống đáy
-}}>
-    <div style={{ fontSize: 24, fontFamily: "'Pacifico', cursive", marginBottom: 10, color: '#d48806' }}>
-        Bakery Love
-    </div>
-    <p>Địa chỉ: 123 Đường Bánh Ngọt, Quận 1, TP.HCM</p>
-    <p>Hotline: 0909 123 456 | Email: order@bakerylove.com</p>
-    <div style={{ marginTop: 20, borderTop: '1px solid #444', paddingTop: 20, fontSize: 12, color: '#636e72' }}>
-        ©2025 BakeryShop Project. All rights reserved.
-    </div>
-</div>
-        </div>
+        <Layout style={{ minHeight: '100vh' }}>
+            {/* Header của bạn ở đây */}
+            
+            <Content>
+                {/* Truyền biến info xuống cho HomePage dùng */}
+                <Outlet context={{ siteInfo: info }} />
+            </Content>
+
+            {/* FOOTER ĐỘNG */}
+            <Footer style={{ textAlign: 'center', background: '#222', color: '#fff', padding: '40px 0' }}>
+                <h2 style={{ color: '#d48806', fontFamily: 'Pacifico', fontSize: 24 }}>
+                    {info?.shopName || "Loading..."}
+                </h2>
+                <div style={{ opacity: 0.8, marginTop: 10 }}>
+                    <p>📍 {info?.address}</p>
+                    <p>📞 {info?.contactPhone} | 📧 {info?.contactEmail}</p>
+                </div>
+                <div style={{ borderTop: '1px solid #444', marginTop: 20, paddingTop: 10, fontSize: 12 }}>
+                    {info?.footerContent}
+                </div>
+            </Footer>
+        </Layout>
     );
 };
-
 export default MainLayout;

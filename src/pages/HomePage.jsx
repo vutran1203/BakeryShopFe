@@ -4,12 +4,14 @@ import { ShoppingCartOutlined } from '@ant-design/icons';
 import api from '../services/api';
 import { addToCart } from '../utils/cart';
 import { motion } from 'framer-motion';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useOutletContext } from 'react-router-dom';
+
 
 const { Title, Text, Paragraph } = Typography;
 const { useBreakpoint } = Grid;
 
 const HomePage = () => {
+  const { siteInfo } = useOutletContext() || {};
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
@@ -114,7 +116,7 @@ const HomePage = () => {
 
             {/* BANNER */}
             <div style={{
-                background: 'linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url("https://images.unsplash.com/photo-1509365465985-25d11c17e812?q=80&w=1920")',
+                background: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url("${siteInfo?.bannerUrl || 'https://images.unsplash.com/photo-1509365465985-25d11c17e812?q=80&w=1920'}")`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
                 height: isMobile ? "250px" : "400px",
@@ -125,8 +127,8 @@ const HomePage = () => {
                 alignItems: "center",
                 marginBottom: 40
             }}>
-                <h1 style={{ fontFamily: "Pacifico", fontSize: isMobile ? 40 : 60 }}>Bakery Love</h1>
-                <p style={{ fontSize: isMobile ? 16 : 20 }}>Đánh thức vị giác với những chiếc bánh ngọt ngào nhất.</p>
+                <h1 style={{ fontFamily: "Pacifico", fontSize: isMobile ? 40 : 60 }}>{siteInfo?.shopName}</h1>
+                <p style={{ fontSize: isMobile ? 16 : 20 }}>{siteInfo?.slogan}</p>
             </div>
 
             {/* PRODUCT LIST */}
