@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Button, Modal, Form, Input, InputNumber, Upload, message, Popconfirm, Select, Space, Grid, List, Card, Typography } from 'antd';
+import { Table, Button, Modal, Form, Input, InputNumber, Upload, message, Popconfirm, Select, Space, Grid, List, Card, Typography, Checkbox } from 'antd';
 import { PlusOutlined, DeleteOutlined, UploadOutlined, EditOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
