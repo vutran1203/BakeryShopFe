@@ -16,6 +16,7 @@ import SearchPage from './pages/SearchPage';
 import AboutPage from './pages/AboutPage';
 import ProductsPage from './pages/ProductsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
+import WebsiteSettings from './pages/WebsiteSettings';
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
             <Route path="/about" element={<AboutPage />} />
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/product/:id" element={<ProductDetailPage />} />
+            
         </Route>
 
         {/* --- LUỒNG ADMIN (Dùng AdminLayout) --- */}
@@ -40,6 +42,7 @@ function App() {
             <Route path="products" element={<AdminPage />} />
             <Route path="orders" element={<AdminOrderPage />} />
             <Route path="categories" element={<AdminCategoryPage />} />
+            <Route path="settings" element={<WebsiteSettings />} />
         </Route>
 
         {/* Nếu gõ linh tinh thì về trang chủ */}

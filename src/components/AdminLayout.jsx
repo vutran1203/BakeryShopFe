@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Layout, Menu, notification, Badge, Popover, List, Avatar, Typography, Button, Grid, Space } from 'antd';
+import { Layout, Menu, notification, Badge, Popover, List, Avatar, Typography, Button, Grid, Space, SettingOutlined } from 'antd';
 import { 
     DashboardOutlined, 
     ShopOutlined, 
@@ -113,6 +113,11 @@ const AdminLayout = () => {
         { key: '/admin/products', icon: <ShopOutlined />, label: 'QL Sản phẩm' },
         { key: '/admin/categories', icon: <ShopOutlined />, label: 'QL Danh mục' },
         { key: '/admin/orders', icon: <ShoppingCartOutlined />, label: 'QL Đơn hàng' },
+        {
+        key: '/admin/settings',
+        icon: <SettingOutlined />,
+        label: <Link to="/admin/settings">Cấu hình Website</Link>,
+    },
         { key: 'logout', icon: <LogoutOutlined />, label: 'Đăng xuất', danger: true },
     ];
 
