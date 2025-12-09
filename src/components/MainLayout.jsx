@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Layout, Spin } from 'antd';
+import { Layout, Spin, Switch } from 'antd';
 import { Outlet } from 'react-router-dom';
-import Header from '../components/Header'; // Import Header vừa sửa
+import Header from '../components/Header';
 import api from '../services/api';
+import Snowfall from "react-snowfall";
 
 const { Footer, Content } = Layout;
 
@@ -37,6 +38,25 @@ const MainLayout = () => {
 
     return (
         <Layout style={{ minHeight: '100vh', background: '#fff' }}>
+
+{/* TUYẾT RƠI NẰM TRÊN TOÀN TRANG */}
+        {siteInfo?.snowEffect && (
+            <Snowfall
+            snowflakeCount={150}
+  color="#ffffff"
+  radius={[1.0, 3.0]}
+                style={{
+                    position: 'fixed',
+                    width: '100vw',
+                    height: '100vh',
+                    top: 0,
+                    left: 0,
+                    pointerEvents: 'none',  // không ảnh hưởng click UI
+                    zIndex: 9999
+                }}
+            />
+        )}
+
             {/* Truyền siteInfo xuống Header để hiện Logo/Tên */}
             <Header siteInfo={siteInfo} />
             

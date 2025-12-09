@@ -4,6 +4,7 @@ import { DeleteOutlined, CreditCardOutlined, FacebookOutlined   } from '@ant-des
 import { getCart, updateQuantity, removeFromCart, clearCart } from '../utils/cart';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import api from '../services/api';
+import "./CartPage.css" 
 
 const { Title } = Typography;
 
@@ -123,7 +124,7 @@ const CartPage = () => {
                 <Card style={{ marginTop: 20, textAlign: 'right' }}>
                     <Title level={4}>Tổng cộng: <span style={{color: '#d48806'}}>{totalAmount.toLocaleString()} đ</span></Title>
                     
-                        <div style={{ display: 'flex', gap: 12, marginTop: 10 }}>
+                        <div className="cart-btn-group">
     <Button
         type="primary"
         icon={<FacebookOutlined />}

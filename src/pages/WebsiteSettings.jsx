@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Form, Input, Button, message, Card, Upload, Image, Tabs } from 'antd';
+import { Form, Input, Button, message, Card, Upload, Image, Tabs, Switch } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import api from '../services/api';
 
@@ -35,6 +35,10 @@ const WebsiteSettings = () => {
             formData.append('AboutUsContent', values.aboutUsContent || "");
 
             formData.append('FacebookUrl', values.facebookUrl || "");
+
+            formData.append('Theme', values.theme || "default");
+formData.append('SnowEffect', values.snowEffect ? "true" : "false");
+
 
             // 2. XỬ LÝ ẢNH (Chỉ append khi có file thực sự)
             // Ant Design Upload đôi khi trả về mảng rỗng hoặc file ảo, cần check kỹ
@@ -84,6 +88,15 @@ const WebsiteSettings = () => {
             key: '1', label: '🏠 Trang Chủ & Chung',
             children: (
                 <>
+                <Form.Item 
+    label="Hiệu ứng tuyết"
+    name="snowEffect"
+    valuePropName="checked"
+>
+    <Switch />
+</Form.Item>
+
+
                     <Form.Item label="Tên Cửa Hàng" name="shopName"><Input /></Form.Item>
                     <Form.Item label="Slogan (Banner)" name="slogan"><Input /></Form.Item>
                     <Form.Item label="Link Facebook Messenger" name="facebookUrl">
