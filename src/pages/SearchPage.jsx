@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom'; // Hook để lấy từ khóa trên URL
+import { useSearchParams } from 'react-router-dom';
 import { Row, Col, Card, Typography, Spin, Button, message } from 'antd';
 import { ShoppingCartOutlined, FrownOutlined } from '@ant-design/icons';
 import api from '../services/api';
@@ -10,7 +10,7 @@ const { Meta } = Card;
 
 const SearchPage = () => {
     const [searchParams] = useSearchParams();
-    const keyword = searchParams.get('q'); // Lấy chữ 'q' trên thanh địa chỉ
+    const keyword = searchParams.get('q');
     
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -19,20 +19,24 @@ const SearchPage = () => {
         const fetchSearch = async () => {
             setLoading(true);
             try {
-                // Gọi API với tham số search
                 const res = await api.get(`/Products?search=${keyword}`);
-                setProducts(res.data);
+
+                // FIX: API trả về { data: [...] }
+                const payload = res.data;
+                const safeData = Array.isArray(payload?.data) ? payload.data : [];
+                setProducts(safeData);
+
             } catch (err) {
                 console.error(err);
+                setProducts([]); // Không crash UI
             } finally {
                 setLoading(false);
             }
         };
 
-        if (keyword) {
-            fetchSearch();
-        }
-    }, [keyword]); // Chạy lại khi từ khóa thay đổi
+        if (keyword) fetchSearch();
+
+    }, [keyword]);
 
     const handleAddToCart = (product) => {
         addToCart(product);
@@ -50,7 +54,7 @@ const SearchPage = () => {
             ) : products.length === 0 ? (
                 <div style={{ textAlign: 'center', fontSize: 18, color: '#888', marginTop: 50 }}>
                     <FrownOutlined style={{ fontSize: 40, marginBottom: 10 }} /> <br/>
-                    Không tìm thấy bánh nào tên là "{keyword}" cả.
+                    Không tìm thấy bánh nào cho từ khóa "{keyword}".
                 </div>
             ) : (
                 <Row gutter={[16, 24]}>
@@ -66,14 +70,22 @@ const SearchPage = () => {
                                     />
                                 }
                                 actions={[
-                                    <Button type="primary" icon={<ShoppingCartOutlined />} onClick={() => handleAddToCart(product)}>
+                                    <Button 
+                                        type="primary" 
+                                        icon={<ShoppingCartOutlined />} 
+                                        onClick={() => handleAddToCart(product)}
+                                    >
                                         Thêm vào giỏ
                                     </Button>
                                 ]}
                             >
                                 <Meta
                                     title={product.name}
-                                    description={<Text strong style={{ color: '#d48806' }}>{product.price.toLocaleString()} đ</Text>}
+                                    description={
+                                        <Text strong style={{ color: '#d48806' }}>
+                                            {product.price.toLocaleString()} đ
+                                        </Text>
+                                    }
                                 />
                             </Card>
                         </Col>
