@@ -22,57 +22,56 @@ const HomePage = () => {
     const screens = useBreakpoint();
     const isMobile = !screens.md;
 
-    // -------------------------
+    // --------------------------
     // FETCH PRODUCTS
-    // -------------------------
- const fetchProducts = async (page, keyword) => {
-    try {
-        setLoading(true);
+    // --------------------------
+    const fetchProducts = async (page, keyword) => {
+        try {
+            setLoading(true);
 
-        const keywordParam = keyword ? `&search=${encodeURIComponent(keyword)}` : "";
-        const url = `/Products?page=${page}&pageSize=${pageSize}${keywordParam}`;
+            const keywordParam = keyword ? `&search=${encodeURIComponent(keyword)}` : "";
+            const url = `/Products?page=${page}&pageSize=${pageSize}${keywordParam}`;
+            console.log("Fetching URL:", url);
 
-        const response = await api.get(url);
-        const payload = response.data;
+            const response = await api.get(url);
+            const payload = response.data;
 
-        // Dữ liệu đúng chuẩn API của bạn
-        const safeData = Array.isArray(payload?.items) ? payload.items : [];
-        const safeTotal = Number(payload?.totalRecords ?? safeData.length);
+            // API ĐÚNG CỦA BẠN TRẢ: { items, totalRecords, pageIndex, ... }
+            const safeData = Array.isArray(payload?.items) ? payload.items : [];
+            const safeTotal = Number(payload?.totalRecords ?? safeData.length);
 
-        setProducts(safeData);
-        setTotalItems(safeTotal);
+            setProducts(safeData);
+            setTotalItems(safeTotal);
 
-    } catch (err) {
-        console.error("Fetch error:", err);
-        setProducts([]);
-    } finally {
-        setLoading(false);
-    }
-};
+        } catch (err) {
+            console.error("Fetch error:", err);
+            setProducts([]);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-
-    // -------------------------
-    // EFFECT 1: Đọc search param từ URL → Update searchTerm & reset page
-    // -------------------------
+    // --------------------------
+    // Update searchTerm khi URL đổi
+    // --------------------------
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         const searchFromUrl = params.get('q') || params.get('search') || "";
 
         setSearchTerm(searchFromUrl);
-        setCurrentPage(1); // reset page khi search thay đổi
-
+        setCurrentPage(1);
     }, [location.search]);
 
-    // -------------------------
-    // EFFECT 2: Fetch khi currentPage hoặc searchTerm thay đổi
-    // -------------------------
+    // --------------------------
+    // Fetch khi page hoặc searchTerm đổi
+    // --------------------------
     useEffect(() => {
         fetchProducts(currentPage, searchTerm);
     }, [currentPage, searchTerm]);
 
-    // -------------------------
+    // --------------------------
     // HANDLERS
-    // -------------------------
+    // --------------------------
     const handlePageChange = (page) => {
         setCurrentPage(page);
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -90,13 +89,13 @@ const HomePage = () => {
         });
     };
 
-    // -------------------------
+    // --------------------------
     // RENDER
-    // -------------------------
+    // --------------------------
     return (
         <div>
 
-            {/* SEARCH MOBILE */}
+            {/* SEARCH BAR - MOBILE */}
             {isMobile && (
                 <div style={{ padding: "15px 20px", background: "#fff", position: "sticky", top: 0, zIndex: 10 }}>
                     <Input.Search
@@ -135,7 +134,7 @@ const HomePage = () => {
 
                 {loading ? (
                     <Row gutter={[24, 32]}>
-                        {[...Array(8)].map((_, i) => (
+                        {[...Array(pageSize)].map((_, i) => (
                             <Col xs={24} sm={12} md={8} lg={6} key={i}>
                                 <Card style={{ borderRadius: 16 }}>
                                     <Skeleton active />
@@ -145,7 +144,7 @@ const HomePage = () => {
                     </Row>
                 ) : (
                     <>
-                        {Array.isArray(products) && products.length > 0 ? (
+                        {products.length > 0 ? (
                             <Row gutter={[24, 32]}>
                                 {products.map((product, index) => {
                                     const imageUrl =
@@ -193,7 +192,7 @@ const HomePage = () => {
                             </Row>
                         ) : (
                             <div style={{ textAlign: "center", padding: "50px 0" }}>
-                                <p style={{ fontSize: 18, color: "#888" }}>Không tìm thấy bánh nào! 🍪</p>
+                                <p style={{ fontSize: 18, color: "#888" }}>Không tìm thấy sản phẩm! 🍰</p>
                                 {searchTerm && (
                                     <Button onClick={() => onSearch("")}>Xem tất cả</Button>
                                 )}
@@ -219,20 +218,26 @@ const HomePage = () => {
     );
 };
 
-// -------------------------
-// PRODUCT CARD COMPONENT
-// -------------------------
 const ProductCard = ({ product, imageUrl, navigate, onAdd }) => (
     <Card
         hoverable
         style={{ borderRadius: 16, overflow: "hidden" }}
         cover={
-            <div style={{ height: 220, overflow: "hidden", cursor: "pointer" }} onClick={() => navigate(`/product/${product?.id}`)}>
+            <div
+                style={{ height: 220, overflow: "hidden", cursor: "pointer" }}
+                onClick={() => navigate(`/product/${product?.id}`)}
+            >
                 <img
                     src={imageUrl}
                     alt={product?.name}
-                    className="card-img"
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        transition: "transform 0.3s"
+                    }}
+                    onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.1)")}
+                    onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1.0)")}
                 />
             </div>
         }
