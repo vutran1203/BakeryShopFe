@@ -14,7 +14,7 @@ const HomePage = () => {
     const [loading, setLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
-    const [searchTerm, setSearchTerm] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");   // Controlled search input
     const pageSize = 8;
 
     const navigate = useNavigate();
@@ -36,8 +36,7 @@ const HomePage = () => {
             const response = await api.get(url);
             const payload = response.data;
 
-            // API TRẢ VỀ DẠNG:
-            // { data: [...], total: number, page: number, pageSize: number }
+            // API format: { data: [...], total: number }
             const safeData = Array.isArray(payload?.data) ? payload.data : [];
             const safeTotal = Number(payload?.total ?? safeData.length);
 
@@ -53,20 +52,24 @@ const HomePage = () => {
     };
 
     // --------------------------
-    // LẤY SEARCH PARAM TỪ URL
+    // LẤY TỪ KHÓA SEARCH TỪ URL
     // --------------------------
     useEffect(() => {
         const params = new URLSearchParams(location.search);
-        const searchFromUrl = params.get('q') || "";
-        setSearchTerm(searchFromUrl);     // Cập nhật ô tìm kiếm
-        setCurrentPage(1);                // Reset trang mỗi lần search URL thay đổi
+        const searchFromUrl = params.get("q") || "";
+
+        setSearchTerm(searchFromUrl);  // synced to input immediately
+        setCurrentPage(1);
+
     }, [location.search]);
 
     // --------------------------
-    // FETCH DỮ LIỆU KHI URL HOẶC PAGE THAY ĐỔI
+    // FETCH SAU KHI PAGE HOẶC URL THAY ĐỔI
     // --------------------------
     useEffect(() => {
-        fetchProducts(currentPage, searchTerm);
+        const params = new URLSearchParams(location.search);
+        const keyword = params.get("q") || "";
+        fetchProducts(currentPage, keyword);
     }, [currentPage, location.search]);
 
     // --------------------------
@@ -85,7 +88,7 @@ const HomePage = () => {
         addToCart(product);
         message.success({
             content: `Đã thêm ${product?.name} vào giỏ!`,
-            style: { marginTop: "20vh" },
+            style: { marginTop: "20vh" }
         });
     };
 
@@ -102,8 +105,9 @@ const HomePage = () => {
                         placeholder="Bạn muốn ăn bánh gì?"
                         allowClear
                         size="large"
-                        defaultValue={searchTerm}
-                        onSearch={onSearch}      // CHỈ FETCH KHI ENTER
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}   // controlled
+                        onSearch={(value) => navigate(`?q=${encodeURIComponent(value)}`)}
                     />
                 </div>
             )}
@@ -128,7 +132,7 @@ const HomePage = () => {
             {/* PRODUCT LIST */}
             <div style={{ padding: isMobile ? "0 20px 50px" : "0 50px 50px" }}>
                 <Title level={2} style={{ textAlign: "center", marginBottom: 40 }}>
-                    {searchTerm ? `Kết quả tìm kiếm: "${searchTerm}"` : "✨ Sản phẩm nổi bật ✨"}
+                    {searchTerm ? `Kết quả cho: "${searchTerm}"` : "✨ Sản phẩm nổi bật ✨"}
                 </Title>
 
                 {loading ? (
@@ -214,6 +218,9 @@ const HomePage = () => {
     );
 };
 
+// --------------------------
+// PRODUCT CARD COMPONENT
+// --------------------------
 const ProductCard = ({ product, imageUrl, navigate, onAdd }) => (
     <Card
         hoverable
