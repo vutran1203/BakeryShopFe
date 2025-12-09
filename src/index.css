@@ -3,8 +3,13 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Nunito', sans-serif !important; /* Font chữ thân thiện */
-  background-color: #FFFBF0; /* Màu kem nhạt làm nền (rất hợp với bánh) */
+  background-color: #fffae6 !important; /* Màu kem nhạt làm nền (rất hợp với bánh) */
 }
+
+.ant-layout-content {
+    background: #FFFAE6 !important;
+}
+
 
 /* Tùy chỉnh thanh cuộn cho đẹp */
 ::-webkit-scrollbar {

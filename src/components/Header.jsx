@@ -89,7 +89,7 @@ const Header = ({ siteInfo }) => {
         <>
             <div style={{
                 position: 'sticky', top: 0, zIndex: 1000, width: '100%', height: '70px',
-                backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(10px)',
+                backgroundColor: 'rgba(255, 250, 230, 0.95)', backdropFilter: 'blur(10px)',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center',
                 justifyContent: 'space-between', padding: isMobile ? '0 20px' : '0 50px', boxSizing: 'border-box'
             }}>

@@ -88,7 +88,7 @@ const HomePage = () => {
         <div>
             {/* MOBILE SEARCH */}
             {isMobile && (
-                <div style={{ padding: "15px 20px", background: "#fff", position: "sticky", top: 0, zIndex: 10 }}>
+                <div style={{ padding: "15px 20px", background: "#FFFAE6", position: "sticky", top: 0, zIndex: 10 }}>
                     <Input.Search
                         placeholder="Bạn muốn ăn bánh gì?"
                         onSearch={onSearch}
