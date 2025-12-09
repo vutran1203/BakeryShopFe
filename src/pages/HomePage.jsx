@@ -33,8 +33,6 @@ const HomePage = () => {
             const response = await api.get(url);
             const payload = response.data;
 
-            console.log("RAW API:", payload);
-
             // ⭐ Trích dữ liệu an toàn
             const safeData =
                 Array.isArray(payload.Data) ? payload.Data :
@@ -88,11 +86,9 @@ const HomePage = () => {
         );
     }
 
-    console.log("PRODUCTS TO RENDER:", products);
-
     return (
         <div>
-
+<h1 style={{color: 'red', textAlign: 'center'}}>PHIÊN BẢN V3 - ĐÃ FIX LỖI</h1>
             {/* MOBILE SEARCH */}
             {isMobile && (
                 <div style={{ padding: "15px 20px", background: "#fff", position: "sticky", top: 0, zIndex: 10 }}>
