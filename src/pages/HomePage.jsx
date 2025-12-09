@@ -25,36 +25,31 @@ const HomePage = () => {
     // -------------------------
     // FETCH PRODUCTS
     // -------------------------
-    const fetchProducts = async (page, keyword) => {
-        try {
-            setLoading(true);
+ const fetchProducts = async (page, keyword) => {
+    try {
+        setLoading(true);
 
-            const keywordParam = keyword ? `&search=${encodeURIComponent(keyword)}` : "";
-            const url = `/Products?page=${page}&pageSize=${pageSize}${keywordParam}`;
-            console.log("Fetching URL:", url);
+        const keywordParam = keyword ? `&search=${encodeURIComponent(keyword)}` : "";
+        const url = `/Products?page=${page}&pageSize=${pageSize}${keywordParam}`;
 
-            const response = await api.get(url);
-            const payload = response.data;
+        const response = await api.get(url);
+        const payload = response.data;
 
-            let safeData = [];
+        // Dữ liệu đúng chuẩn API của bạn
+        const safeData = Array.isArray(payload?.items) ? payload.items : [];
+        const safeTotal = Number(payload?.totalRecords ?? safeData.length);
 
-            if (payload?.data && Array.isArray(payload.data)) safeData = payload.data;
-            else if (payload?.Data && Array.isArray(payload.Data)) safeData = payload.Data;
-            else if (Array.isArray(payload)) safeData = payload;
-            else safeData = [];
+        setProducts(safeData);
+        setTotalItems(safeTotal);
 
-            const safeTotal = Number(payload?.total ?? payload?.Total ?? safeData.length);
+    } catch (err) {
+        console.error("Fetch error:", err);
+        setProducts([]);
+    } finally {
+        setLoading(false);
+    }
+};
 
-            setProducts(safeData);
-            setTotalItems(safeTotal);
-
-        } catch (err) {
-            console.error("Fetch error:", err);
-            setProducts([]);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     // -------------------------
     // EFFECT 1: Đọc search param từ URL → Update searchTerm & reset page
