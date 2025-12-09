@@ -18,25 +18,62 @@ const WebsiteSettings = () => {
 
     useEffect(() => { fetchInfo(); }, []);
 
-    const handleSave = async (values) => {
-        setLoading(true);
+ const handleSave = async (values) => {
         try {
+            setLoading(true);
             const formData = new FormData();
-            // Append Text Fields (Lấy hết key từ values)
-            Object.keys(values).forEach(key => {
-                if (values[key] && !key.includes('File')) formData.append(key, values[key]);
-            });
 
-            // Append Files
-            if (values.logoFile?.file) formData.append('LogoFile', values.logoFile.file.originFileObj);
-            if (values.bannerFile?.file) formData.append('BannerFile', values.bannerFile.file.originFileObj);
-            if (values.aboutUsImageFile?.file) formData.append('AboutUsImageFile', values.aboutUsImageFile.file.originFileObj);
+            // 1. XỬ LÝ TEXT (Chống lỗi null/undefined gây 400)
+            // Nếu không có giá trị thì gửi chuỗi rỗng ""
+            formData.append('ShopName', values.shopName || ""); 
+            formData.append('Slogan', values.slogan || "");
+            formData.append('Address', values.address || "");
+            formData.append('ContactEmail', values.contactEmail || "");
+            formData.append('ContactPhone', values.contactPhone || "");
+            formData.append('FooterContent', values.footerContent || "");
+            formData.append('AboutUsTitle', values.aboutUsTitle || "");
+            formData.append('AboutUsContent', values.aboutUsContent || "");
 
-            await api.put('/WebsiteInfo', formData);
+            // 2. XỬ LÝ ẢNH (Chỉ append khi có file thực sự)
+            // Ant Design Upload đôi khi trả về mảng rỗng hoặc file ảo, cần check kỹ
+            
+            // >> Logo
+            if (values.logoFile?.file?.originFileObj) {
+                formData.append('LogoFile', values.logoFile.file.originFileObj);
+            } else if (values.logoFile?.fileList?.[0]?.originFileObj) {
+                 formData.append('LogoFile', values.logoFile.fileList[0].originFileObj);
+            }
+
+            // >> Banner
+            if (values.bannerFile?.file?.originFileObj) {
+                formData.append('BannerFile', values.bannerFile.file.originFileObj);
+            } else if (values.bannerFile?.fileList?.[0]?.originFileObj) {
+                formData.append('BannerFile', values.bannerFile.fileList[0].originFileObj);
+            }
+
+            // >> Ảnh About Us
+            if (values.aboutUsImageFile?.file?.originFileObj) {
+                formData.append('AboutUsImageFile', values.aboutUsImageFile.file.originFileObj);
+            } else if (values.aboutUsImageFile?.fileList?.[0]?.originFileObj) {
+                formData.append('AboutUsImageFile', values.aboutUsImageFile.fileList[0].originFileObj);
+            }
+
+            // 3. GỌI API (DÙNG PATCH)
+            await api.patch('/WebsiteInfo', formData); // 👈 Đổi put -> patch
+            
             message.success("Cập nhật thành công!");
-            fetchInfo(); // Refresh ảnh
-        } catch (err) { message.error("Lỗi cập nhật!"); } 
-        finally { setLoading(false); }
+            fetchInfo(); 
+        } catch (err) {
+            console.error(err);
+            // In lỗi chi tiết ra để biết sai ở đâu
+            if (err.response?.data?.errors) {
+                message.error("Lỗi dữ liệu: " + JSON.stringify(err.response.data.errors));
+            } else {
+                message.error("Có lỗi xảy ra! Kiểm tra lại kết nối.");
+            }
+        } finally {
+            setLoading(false);
+        }
     };
 
     // --- CẤU HÌNH TABS ---
