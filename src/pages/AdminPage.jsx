@@ -69,7 +69,8 @@ const AdminPage = () => {
             name: product.name,
             price: product.price,
             categoryId: product.categoryId,
-            description: product.description
+            description: product.description,
+            isBestSeller: product.isBestSeller
         });
     };
 
@@ -93,6 +94,7 @@ const AdminPage = () => {
             
             // Xử lý mô tả: Nếu null/undefined thì gửi chuỗi rỗng
             formData.append('Description', values.description || "");
+            formData.append('IsBestSeller', values.isBestSeller || false);
             
             // Xử lý ảnh: Chỉ gửi nếu người dùng chọn ảnh mới
             if (fileList.length > 0) {
@@ -253,6 +255,10 @@ const AdminPage = () => {
                     <Form.Item label="Mô tả" name="description">
                         <Input.TextArea rows={3} />
                     </Form.Item>
+
+                    <Form.Item name="isBestSeller" valuePropName="checked">
+    <Checkbox>"Best Seller (Hiển thị trên Home)" </Checkbox>
+</Form.Item>
                     
                     <Form.Item label={editingProduct ? "Thay đổi hình ảnh (Để trống nếu giữ ảnh cũ)" : "Hình ảnh"}>
                         <Upload 

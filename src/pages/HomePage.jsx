@@ -30,7 +30,7 @@ const HomePage = () => {
             setLoading(true);
 
             const keywordParam = keyword ? `&search=${encodeURIComponent(keyword)}` : "";
-            const url = `/Products?page=${page}&pageSize=${pageSize}${keywordParam}`;
+            const url = `/Products?page=${page}&pageSize=${pageSize}${keywordParam}&isBestSeller=true`;
             console.log("Fetching:", url);
 
             const response = await api.get(url);
@@ -155,9 +155,8 @@ const HomePage = () => {
                                             ? "https://placehold.co/300x200?text=No+Image"
                                             : product.imageUrl;
 
-                                    const ribbonText =
-                                        index % 3 === 0 ? "Best Seller" :
-                                        index % 4 === 0 ? "New" : null;
+                                    const ribbonText = product.isBestSeller ? "Best Seller" : null;
+    const ribbonColor = "red";
 
                                     const card = (
                                         <ProductCard
