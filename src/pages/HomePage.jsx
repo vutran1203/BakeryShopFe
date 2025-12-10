@@ -74,16 +74,14 @@ const HomePage = () => {
         navigate(`?q=${encodeURIComponent(value)}`);
     };
 
-    function showMobileToastAndRedirect(message, seconds, redirectUrl) {
+    const showMobileToastAndRedirect = (message, seconds, redirectUrl) => {
   let timeLeft = seconds;
 
-  // Tạo toast
   const toast = document.createElement("div");
   toast.className = "mobile-toast";
   toast.innerText = `${message} ${timeLeft}s`;
   document.body.appendChild(toast);
 
-  // Interval đếm ngược
   const timer = setInterval(() => {
     timeLeft--;
     toast.innerText = `${message} ${timeLeft}s`;
@@ -91,10 +89,11 @@ const HomePage = () => {
     if (timeLeft <= 0) {
       clearInterval(timer);
       toast.remove();
-      window.location.href = redirectUrl; // Chuyển trang
+      window.location.href = redirectUrl;
     }
   }, 1000);
-}
+};
+
 
 
 

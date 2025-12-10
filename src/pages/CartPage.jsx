@@ -22,16 +22,14 @@ const CartPage = () => {
     // Tính tổng tiền
     const totalAmount = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
-function showMobileToastAndRedirect(message, seconds, redirectUrl) {
+const showMobileToastAndRedirect = (message, seconds, redirectUrl) => {
   let timeLeft = seconds;
 
-  // Tạo toast
   const toast = document.createElement("div");
   toast.className = "mobile-toast";
   toast.innerText = `${message} ${timeLeft}s`;
   document.body.appendChild(toast);
 
-  // Interval đếm ngược
   const timer = setInterval(() => {
     timeLeft--;
     toast.innerText = `${message} ${timeLeft}s`;
@@ -39,10 +37,11 @@ function showMobileToastAndRedirect(message, seconds, redirectUrl) {
     if (timeLeft <= 0) {
       clearInterval(timer);
       toast.remove();
-      window.location.href = redirectUrl; // Chuyển trang
+      window.location.href = redirectUrl;
     }
   }, 1000);
-}
+};
+
 
     // 👇 HÀM XỬ LÝ GỬI ĐƠN QUA FACEBOOK
     const handleContactOrder = () => {
