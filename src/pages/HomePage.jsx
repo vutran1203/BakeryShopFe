@@ -32,7 +32,7 @@ const HomePage = () => {
         try {
             setLoading(true);
             const keywordParam = keyword ? `&search=${encodeURIComponent(keyword)}` : "";
-            const url = `/Products?page=${page}&pageSize=${pageSize}${keywordParam}`;
+            const url = `/Products?page=${page}&pageSize=${pageSize}${keywordParam}&isBestSeller=true`;
             
             const response = await api.get(url);
             const payload = response.data;
@@ -169,7 +169,8 @@ const HomePage = () => {
                                             imageUrl={imageUrl} 
                                             navigate={navigate} 
                                             siteInfo={siteInfo}
-                                            onAdd={handleAddToCart} // 👇 Truyền hàm thêm giỏ hàng xuống
+                                            onAdd={handleAddToCart}
+                                            onToast={showMobileToastAndRedirect} 
                                         />
                                     );
 
@@ -205,16 +206,18 @@ const HomePage = () => {
 };
 
 /* ==================== PRODUCT CARD (CÓ CẢ 2 NÚT) ==================== */
-const ProductCard = ({ product, imageUrl, navigate, siteInfo, onAdd }) => {
+const ProductCard = ({ product, imageUrl, navigate, siteInfo, onAdd, onToast  }) => {
     
     const handleContact = (e) => {
         e.stopPropagation();
         const text = `Chào shop 👋, mình muốn mua bánh "${product.name}" giá ${product.price?.toLocaleString()}đ. Tư vấn giúp mình nhé!`;
         navigator.clipboard.writeText(text);
-        showMobileToastAndRedirect(
+        onToast(
   "Đã copy đơn hàng! Dán vào Messenger nhé!",
-  2, siteInfo?.facebookUrl
+  2,
+  siteInfo?.facebookUrl
 );
+
     };
 
     // Hàm xử lý thêm vào giỏ (chặn sự kiện click vào thẻ)
