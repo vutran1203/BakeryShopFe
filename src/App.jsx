@@ -18,10 +18,20 @@ import AdminPage from './pages/AdminPage';
 import AdminOrderPage from './pages/AdminOrderPage';
 import AdminCategoryPage from './pages/AdminCategoryPage';
 import WebsiteSettings from './pages/WebsiteSettings';
+import { useLocation } from 'react-router-dom';
+import ReactGA from "react-ga4";
+import { useEffect } from 'react';
 
 
 function App() {
+
+const location = useLocation();
+    useEffect(() => {
+      ReactGA.send({ hitType: "pageview", page: location.pathname + location.search });
+    }, [location]); 
+
   return (
+
     <Routes>
 
       {/* --- KHÁCH HÀNG (dùng MainLayout) --- */}

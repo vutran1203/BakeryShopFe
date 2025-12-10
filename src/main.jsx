@@ -5,6 +5,9 @@ import App from './App.jsx';
 import { BrowserRouter } from "react-router-dom";
 import { ConfigProvider, App as AntdApp } from "antd";
 import { HelmetProvider } from 'react-helmet-async';
+import ReactGA from "react-ga4";
+
+ReactGA.initialize("G-9JGSWBQY77");
 
 // Bảng màu Bakery
 const bakeryTheme = {
