@@ -25,7 +25,7 @@ const MainLayout = () => {
                 console.error("Lỗi tải thông tin web:", error);
                 // Nếu lỗi thì set mặc định để không trắng trang
                 setSiteInfo({
-                    shopName: "Bakery Love",
+                    shopName: "Mia Cake",
                     footerContent: "© 2025 All Rights Reserved.",
                     address: "Đang cập nhật...",
                     contactPhone: "..."
