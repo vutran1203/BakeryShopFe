@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Col, Row, Button, Typography, message, Pagination, Skeleton, Badge, Grid, Input } from 'antd';
+import { Card, Col, Row, Button, Typography, message, Pagination, Skeleton, Badge, Grid, Input, Modal } from 'antd';
 import { FacebookOutlined, ShoppingCartOutlined } from '@ant-design/icons'; // Import đủ 2 icon
 import api from '../services/api';
 import { addToCart } from '../utils/cart'; // Nhớ import hàm này
