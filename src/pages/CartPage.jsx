@@ -136,7 +136,8 @@ const CartPage = () => {
             flex: 1   // chiếm 50%
         }}
     >
-        Gửi đơn qua Messenger (Đã copy nội dung, chỉ cần dán vào tin nhắn!)
+        Gửi đơn qua Messenger 
+        (Đã copy nội dung, chỉ cần dán vào tin nhắn!)
     </Button>
 
     <Button

@@ -243,7 +243,8 @@ const ProductCard = ({ product, imageUrl, navigate, siteInfo, onAdd }) => {
                     size="large" 
                     style={{ background: '#1877F2', borderColor: '#1877F2', color: '#fff', fontWeight: 600 }}
                 >
-                    Liên hệ người bán (Đã copy nội dung, chỉ cần dán vào tin nhắn!)
+                    Liên hệ người bán 
+                    (Đã copy nội dung, chỉ cần dán vào tin nhắn!)
                 </Button>
             </div>
         </Card>
