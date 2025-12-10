@@ -117,7 +117,7 @@ formData.append('SnowEffect', values.snowEffect ? "true" : "false");
             )
         },
         {
-            key: '2', label: '📞 Liên Hệ (Footer)',
+            key: '2', label: '📞 Liên Hệ ',
             children: (
                 <>
                     <Form.Item label="Địa chỉ" name="address"><Input.TextArea rows={2} /></Form.Item>
