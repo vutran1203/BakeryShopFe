@@ -22,6 +22,28 @@ const CartPage = () => {
     // Tính tổng tiền
     const totalAmount = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
+function showMobileToastAndRedirect(message, seconds, redirectUrl) {
+  let timeLeft = seconds;
+
+  // Tạo toast
+  const toast = document.createElement("div");
+  toast.className = "mobile-toast";
+  toast.innerText = `${message} ${timeLeft}s`;
+  document.body.appendChild(toast);
+
+  // Interval đếm ngược
+  const timer = setInterval(() => {
+    timeLeft--;
+    toast.innerText = `${message} ${timeLeft}s`;
+
+    if (timeLeft <= 0) {
+      clearInterval(timer);
+      toast.remove();
+      window.location.href = redirectUrl; // Chuyển trang
+    }
+  }, 1000);
+}
+
     // 👇 HÀM XỬ LÝ GỬI ĐƠN QUA FACEBOOK
     const handleContactOrder = () => {
         if (cartItems.length === 0) return message.warning("Giỏ hàng đang trống!");
@@ -53,27 +75,7 @@ const CartPage = () => {
         setCartItems(getCart()); // Load lại state để giao diện cập nhật
     };
 
-    function showMobileToastAndRedirect(message, seconds, redirectUrl) {
-  let timeLeft = seconds;
-
-  // Tạo toast
-  const toast = document.createElement("div");
-  toast.className = "mobile-toast";
-  toast.innerText = `${message} ${timeLeft}s`;
-  document.body.appendChild(toast);
-
-  // Interval đếm ngược
-  const timer = setInterval(() => {
-    timeLeft--;
-    toast.innerText = `${message} ${timeLeft}s`;
-
-    if (timeLeft <= 0) {
-      clearInterval(timer);
-      toast.remove();
-      window.location.href = redirectUrl; // Chuyển trang
-    }
-  }, 1000);
-}
+    
 
 
     
