@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Col, Row, Button, Typography, message, Pagination, Skeleton, Badge, Grid, Input, Modal } from 'antd';
-import { FacebookOutlined, ShoppingCartOutlined } from '@ant-design/icons'; // Import đủ 2 icon
+import { Card, Col, Row, Button, Typography, message, Pagination, Skeleton, Badge, Grid, Input } from 'antd';
+import { FacebookOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import api from '../services/api';
-import { addToCart } from '../utils/cart'; // Nhớ import hàm này
+import { addToCart } from '../utils/cart';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation, useOutletContext } from 'react-router-dom';
 
@@ -10,68 +10,61 @@ const { Title, Text, Paragraph } = Typography;
 const { useBreakpoint } = Grid;
 
 const HomePage = () => {
-    // --- STATE ---
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
     const [searchTerm, setSearchTerm] = useState("");
-    const pageSize = 8;
+    
+    // Mobile hiển thị nhiều hơn thì load 10 sản phẩm/trang cho đẹp
+    const pageSize = 10; 
 
-    // --- HOOKS ---
     const navigate = useNavigate();
     const location = useLocation();
     const screens = useBreakpoint();
     const isMobile = !screens.md;
     
-    // Lấy thông tin Website từ MainLayout
     const { siteInfo } = useOutletContext() || {}; 
 
-    // --- 1. LOGIC GỌI API ---
-    const fetchProducts = async (page, keyword) => {
-        try {
-            setLoading(true);
-            // 1. Xử lý tham số tìm kiếm
-            const keywordParam = keyword ? `&search=${encodeURIComponent(keyword)}` : "";
+    // --- LOGIC FETCH API (Giữ nguyên) ---
+  const fetchProducts = async (page, keyword, retryCount = 0) => {
+    try {
+        setLoading(true);
 
-            // 2. Xử lý tham số Best Seller (LOGIC MỚI)
-            // - Nếu ĐANG TÌM (có keyword) -> thì rỗng "" (để tìm tất cả)
-            // - Nếu KHÔNG TÌM (trang chủ) -> thì thêm "&isBestSeller=true"
-            const bestSellerParam = keyword ? "" : "&isBestSeller=true";
+        const keywordParam = keyword ? `&search=${encodeURIComponent(keyword)}` : "";
+        const bestSellerParam = keyword ? "" : "&isBestSeller=true";
+        const url = `/Products?page=${page}&pageSize=${pageSize}${keywordParam}${bestSellerParam}`;
+        
+        const response = await api.get(url);
+        const payload = response.data;
 
-            // 3. Ghép thành URL hoàn chỉnh
-            const url = `/Products?page=${page}&pageSize=${pageSize}${keywordParam}${bestSellerParam}`;
-            
-            const response = await api.get(url);
-            const payload = response.data;
+        let safeData = [];
+        if (Array.isArray(payload?.data)) safeData = payload.data;
+        else if (Array.isArray(payload?.Data)) safeData = payload.Data;
+        else if (Array.isArray(payload)) safeData = payload;
 
-            // Logic an toàn dữ liệu
-            let safeData = [];
-            if (payload?.data && Array.isArray(payload.data)) safeData = payload.data;
-            else if (payload?.Data && Array.isArray(payload.Data)) safeData = payload.Data;
-            else if (Array.isArray(payload)) safeData = payload;
+        const safeTotal = payload?.total ?? payload?.Total ?? safeData.length;
 
-            const safeTotal = payload?.total ?? payload?.Total ?? safeData.length;
-
-            setProducts(safeData);
-            setTotalItems(safeTotal);
-        } catch (err) {
-            console.error("Fetch error:", err);
-            setProducts([]); 
-        } finally {
-            setLoading(false);
+        setProducts(safeData);
+        setTotalItems(safeTotal);
+    } catch (err) {
+        console.error("Lỗi:", err);
+        if (retryCount < 2) {
+            return setTimeout(() => fetchProducts(page, keyword, retryCount + 1), 3000);
         }
-    };
+    } finally {
+        setLoading(false);
+    }
+};
 
-    // --- 2. TRIGGER API ---
+
     useEffect(() => {
         const params = new URLSearchParams(location.search);
-        const searchFromUrl = params.get('q') || params.get('search') || "";
+        const searchFromUrl = params.get('q') || "";
         setSearchTerm(searchFromUrl); 
         fetchProducts(currentPage, searchFromUrl);
     }, [currentPage, location.search]);
 
-    // --- 3. HÀM XỬ LÝ ---
     const handlePageChange = (page) => {
         setCurrentPage(page);
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -82,95 +75,57 @@ const HomePage = () => {
         navigate(`?q=${encodeURIComponent(value)}`);
     };
 
-    const showMobileToastAndRedirect = (message, seconds, redirectUrl) => {
-  let timeLeft = seconds;
-
-  const toast = document.createElement("div");
-  toast.className = "mobile-toast";
-  toast.innerText = `${message} ${timeLeft}s`;
-  document.body.appendChild(toast);
-
-  const timer = setInterval(() => {
-    timeLeft--;
-    toast.innerText = `${message} ${timeLeft}s`;
-
-    if (timeLeft <= 0) {
-      clearInterval(timer);
-      toast.remove();
-      window.location.href = redirectUrl;
-    }
-  }, 1000);
-};
-
-
-
-
-    // Hàm thêm vào giỏ (Đã khôi phục)
     const handleAddToCart = (product) => {
         addToCart(product);
-        message.success({
-            content: `Đã thêm ${product.name} vào giỏ! 🍰`,
-            style: { marginTop: '20vh' },
-        });
+        message.success({ content: `Đã thêm ${product.name}!`, style: { marginTop: '10vh' } });
     };
 
-    // --- 4. RENDER GIAO DIỆN ---
     return (
         <div>
-            {/* MOBILE SEARCH */}
             {isMobile && (
-                <div style={{ padding: "15px 20px", background: "#FFFAE6", position: "sticky", top: 0, zIndex: 10 }}>
-                    <Input.Search
-                        placeholder="Bạn muốn ăn bánh gì?"
-                        onSearch={onSearch}
-                        enterButton allowClear size="large"
-                        defaultValue={searchTerm}
-                    />
+                <div style={{ padding: "10px 15px", background: "#fff", position: "sticky", top: 0, zIndex: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+                    <Input.Search placeholder="Tìm bánh..." onSearch={onSearch} enterButton allowClear size="middle" defaultValue={searchTerm} />
                 </div>
             )}
 
-            {/* BANNER */}
             <div style={{
                 background: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url("${siteInfo?.bannerUrl || 'https://images.unsplash.com/photo-1509365465985-25d11c17e812?q=80&w=1920'}")`,
                 backgroundSize: "cover", backgroundPosition: "center",
-                height: isMobile ? "250px" : "400px",
+                height: isMobile ? "200px" : "400px", // Thu nhỏ banner mobile chút
                 color: "white", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center",
-                marginBottom: 40
+                marginBottom: 30
             }}>
-                <h1 style={{ fontFamily: "Pacifico", fontSize: isMobile ? 40 : 60 }}>
+                <h1 style={{ fontFamily: "Pacifico", fontSize: isMobile ? 32 : 60, margin: 0 }}>
                     {siteInfo?.shopName || "Bakery Love"}
                 </h1>
-                <p style={{ fontSize: isMobile ? 16 : 20 }}>
-                    {siteInfo?.slogan || "Đánh thức vị giác với những chiếc bánh ngọt ngào nhất."}
+                <p style={{ fontSize: isMobile ? 14 : 20, textAlign: 'center', padding: '0 10px' }}>
+                    {siteInfo?.slogan || "Hương vị ngọt ngào"}
                 </p>
             </div>
 
-            {/* DANH SÁCH SẢN PHẨM */}
-            <div style={{ padding: isMobile ? "0 20px 50px" : "0 50px 50px" }}>
-                <Title level={2} style={{ textAlign: "center", marginBottom: 40 }}>
-                    {searchTerm ? `Kết quả cho: "${searchTerm}"` : "✨ Sản phẩm nổi bật ✨"}
+            <div style={{ padding: isMobile ? "0 10px 50px" : "0 50px 50px" }}>
+                <Title level={isMobile ? 4 : 2} style={{ textAlign: "center", marginBottom: 30 }}>
+                    {searchTerm ? `Kết quả: "${searchTerm}"` : "✨ Bánh Ngon ✨"}
                 </Title>
 
                 {loading ? (
-                    <Row gutter={[24, 32]}>
-                        {[...Array(8)].map((_, i) => (
-                            <Col xs={24} sm={12} md={8} lg={6} key={i}>
-                                <Card style={{ borderRadius: 16 }}><Skeleton active /></Card>
+                    <Row gutter={[10, 10]}> 
+                        {[...Array(6)].map((_, i) => (
+                            <Col xs={12} sm={12} md={8} lg={6} key={i}>
+                                <Card><Skeleton active paragraph={{ rows: 1 }} /></Card>
                             </Col>
                         ))}
                     </Row>
                 ) : (
                     <>
                         {Array.isArray(products) && products.length > 0 ? (
-                            <Row gutter={[24, 32]}>
+                            // 👇 QUAN TRỌNG: Gutter nhỏ cho mobile (10px), lớn cho desktop (24px)
+                            <Row gutter={isMobile ? [10, 10] : [24, 32]}>
                                 {products.map((product, index) => {
                                     if (!product) return null;
+                                    const imageUrl = !product.imageUrl || !product.imageUrl.startsWith("http") ? "https://placehold.co/300x200?text=No+Image" : product.imageUrl;
+                                    const ribbonText = product.isBestSeller ? "Hot" : null;
 
-                                    const imageUrl = !product.imageUrl || !product.imageUrl.startsWith("http")
-                                            ? "https://placehold.co/300x200?text=No+Image" : product.imageUrl;
-
-                                    const ribbonText = product.isBestSeller ? "Best Seller" : null;
-                                    
                                     const card = (
                                         <ProductCard 
                                             product={product} 
@@ -178,13 +133,14 @@ const HomePage = () => {
                                             navigate={navigate} 
                                             siteInfo={siteInfo}
                                             onAdd={handleAddToCart}
-                                            onToast={showMobileToastAndRedirect} 
+                                            isMobile={isMobile} // Truyền biến isMobile xuống để chỉnh CSS
                                         />
                                     );
 
                                     return (
-                                        <Col xs={24} sm={12} md={8} lg={6} key={product.id || index}>
-                                            <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: index * 0.1 }}>
+                                        // 👇 SỬA Ở ĐÂY: xs={12} (2 cột) thay vì xs={24} (1 cột)
+                                        <Col xs={12} sm={12} md={8} lg={6} key={product.id || index}>
+                                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
                                                 {ribbonText ? <Badge.Ribbon text={ribbonText} color="red">{card}</Badge.Ribbon> : card}
                                             </motion.div>
                                         </Col>
@@ -192,18 +148,15 @@ const HomePage = () => {
                                 })}
                             </Row>
                         ) : (
-                            <div style={{ textAlign: "center", padding: "50px 0" }}>
-                                <p style={{ fontSize: 18, color: "#888" }}>Không tìm thấy bánh nào! 🍪</p>
+                            <div style={{ textAlign: "center", padding: "50px 0", color: "#888" }}>
+                                <p>Không tìm thấy bánh nào! 🍪</p>
                                 {searchTerm && <Button onClick={() => onSearch("")}>Xem tất cả</Button>}
                             </div>
                         )}
 
                         {totalItems > 0 && (
-                            <div style={{ marginTop: 50, textAlign: "center" }}>
-                                <Pagination
-                                    current={currentPage} total={totalItems} pageSize={pageSize}
-                                    showSizeChanger={false} onChange={handlePageChange}
-                                />
+                            <div style={{ marginTop: 40, textAlign: "center" }}>
+                                <Pagination current={currentPage} total={totalItems} pageSize={pageSize} showSizeChanger={false} onChange={handlePageChange} size={isMobile ? "small" : "default"} />
                             </div>
                         )}
                     </>
@@ -213,22 +166,18 @@ const HomePage = () => {
     );
 };
 
-/* ==================== PRODUCT CARD (CÓ CẢ 2 NÚT) ==================== */
-const ProductCard = ({ product, imageUrl, navigate, siteInfo, onAdd, onToast  }) => {
+/* ==================== PRODUCT CARD (TỐI ƯU MOBILE) ==================== */
+const ProductCard = ({ product, imageUrl, navigate, siteInfo, onAdd, isMobile }) => {
     
     const handleContact = (e) => {
         e.stopPropagation();
-        const text = `Chào shop 👋, mình muốn mua bánh "${product.name}" giá ${product.price?.toLocaleString()}đ. Tư vấn giúp mình nhé!`;
+        const text = `Shop ơi, tư vấn món "${product.name}" giá ${product.price?.toLocaleString()}đ nhé!`;
         navigator.clipboard.writeText(text);
-        onToast(
-  "Đã copy đơn hàng! Dán vào Messenger nhé!",
-  2,
-  siteInfo?.facebookUrl
-);
-
+        message.success("Đã copy! Mở Messenger nha 💬");
+        const link = siteInfo?.facebookUrl || siteInfo?.FacebookUrl || "https://m.me/"; 
+        window.open(link, '_blank');
     };
 
-    // Hàm xử lý thêm vào giỏ (chặn sự kiện click vào thẻ)
     const handleAddToCartBtn = (e) => {
         e.stopPropagation();
         onAdd(product);
@@ -237,49 +186,51 @@ const ProductCard = ({ product, imageUrl, navigate, siteInfo, onAdd, onToast  })
     return (
         <Card
             hoverable
-            style={{ borderRadius: 16, overflow: "hidden", height: "100%", display: "flex", flexDirection: "column" }}
+            style={{ 
+                borderRadius: 12, overflow: "hidden", height: "100%", 
+                display: "flex", flexDirection: "column",
+                // Mobile thì giảm padding của Card xuống cho rộng rãi
+                bodyStyle: { padding: isMobile ? '10px' : '24px' } 
+            }}
             cover={
-                <div style={{ height: 220, overflow: "hidden", cursor: "pointer" }} onClick={() => navigate(`/product/${product?.id}`)}>
+                <div style={{ height: isMobile ? 140 : 220, overflow: "hidden", cursor: "pointer" }} onClick={() => navigate(`/product/${product?.id}`)}>
                     <img src={imageUrl} alt={product?.name} 
-                         style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.3s" }} 
-                         onMouseOver={e => e.currentTarget.style.transform = 'scale(1.1)'} 
-                         onMouseOut={e => e.currentTarget.style.transform = 'scale(1.0)'} />
+                         style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 </div>
             }
         >
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <Title level={4} style={{ margin: 0, fontSize: 18 }} ellipsis>{product?.name}</Title>
-                <Text strong style={{ color: "#d48806", fontSize: 18 }}>{product?.price?.toLocaleString()}đ</Text>
-            </div>
-            
-            <Paragraph ellipsis={{ rows: 2 }} style={{ color: "#888", marginTop: 10, flex: 1 }}>
-                {product?.description || "Chưa có mô tả"}
-            </Paragraph>
-
-            {/* 👇 KHU VỰC 2 NÚT BẤM 👇 */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 15 }}>
+            <div style={{ flex: 1 }}>
+                {/* Tên bánh: Mobile chữ nhỏ hơn */}
+                <Title level={isMobile ? 5 : 4} style={{ margin: "0 0 5px 0", fontSize: isMobile ? 15 : 18, lineHeight: 1.2 }} ellipsis={{ rows: 2 }}>
+                    {product?.name}
+                </Title>
                 
-                {/* 1. NÚT THÊM VÀO GIỎ (Màu vàng thương hiệu) */}
+                {/* Giá tiền */}
+                <Text strong style={{ color: "#d48806", fontSize: isMobile ? 15 : 18, display: 'block', marginBottom: 5 }}>
+                    {product?.price?.toLocaleString()}đ
+                </Text>
+            </div>
+
+            {/* Khu vực nút bấm: Mobile dùng size nhỏ */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? 6 : 10, marginTop: 10 }}>
                 <Button 
-                    type="primary" 
-                    block 
+                    type="primary" block 
                     icon={<ShoppingCartOutlined />} 
                     onClick={handleAddToCartBtn} 
-                    size="large"
+                    size={isMobile ? "small" : "large"} // Mobile nút nhỏ
+                    style={{ fontSize: isMobile ? 12 : 16 }}
                 >
-                    Thêm vào giỏ
+                    {isMobile ? "Thêm" : "Thêm vào giỏ"}
                 </Button>
 
-                {/* 2. NÚT LIÊN HỆ FB (Màu xanh Facebook) */}
                 <Button 
                     block 
                     icon={<FacebookOutlined />} 
                     onClick={handleContact} 
-                    size="large" 
-                    style={{ background: '#1877F2', borderColor: '#1877F2', color: '#fff', fontWeight: 600 }}
+                    size={isMobile ? "small" : "large"} 
+                    style={{ background: '#1877F2', borderColor: '#1877F2', color: '#fff', fontWeight: 600, fontSize: isMobile ? 12 : 16 }}
                 >
-                    Liên hệ người bán 
-                    
+                    {isMobile ? "Liên hệ" : "Liên hệ người bán"}
                 </Button>
             </div>
         </Card>

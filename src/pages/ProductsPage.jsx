@@ -1,15 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Col, Row, Button, Typography, Spin, message, Divider, Pagination, Menu } from 'antd';
-import { ShoppingCartOutlined, AppstoreOutlined } from '@ant-design/icons';
+import { Card, Col, Row, Button, Typography, Spin, message, Divider, Pagination, Select, Grid, Badge } from 'antd';
+import { ShoppingCartOutlined, AppstoreOutlined, FilterOutlined } from '@ant-design/icons';
 import api from '../services/api';
 import { addToCart } from '../utils/cart';
-import { useNavigate } from 'react-router-dom'; // 1. Đảm bảo đã import cái này
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 const { Title, Text } = Typography;
 const { Meta } = Card;
+const { Option } = Select;
+const { useBreakpoint } = Grid;
 
 const ProductsPage = () => {
-    const navigate = useNavigate(); // 2. Khởi tạo hook chuyển trang
+    const navigate = useNavigate();
+    const screens = useBreakpoint();
+    const isMobile = !screens.md; // Kiểm tra xem có phải mobile không
+
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -20,10 +26,12 @@ const ProductsPage = () => {
     
     const pageSize = 12;
 
+    // Load danh mục
     useEffect(() => {
         api.get('/Categories').then(res => setCategories(res.data));
     }, []);
 
+    // Load sản phẩm
     const fetchProducts = async () => {
         setLoading(true);
         try {
@@ -31,8 +39,13 @@ const ProductsPage = () => {
             if (selectedCategory) url += `&categoryId=${selectedCategory}`;
 
             const res = await api.get(url);
-            setProducts(res.data.data || []); 
-            setTotalItems(res.data.total || 0);
+            
+            // Xử lý dữ liệu an toàn (tránh lỗi null)
+            const data = res.data?.data || res.data?.Data || res.data || [];
+            const total = res.data?.total || res.data?.Total || data.length;
+
+            setProducts(Array.isArray(data) ? data : []);
+            setTotalItems(total);
         } catch (error) {
             console.error(error);
             message.error("Lỗi tải sản phẩm");
@@ -43,112 +56,132 @@ const ProductsPage = () => {
 
     useEffect(() => {
         fetchProducts();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }, [currentPage, selectedCategory]);
 
     const handleAddToCart = (e, product) => {
-        e.stopPropagation(); // Ngăn không cho sự kiện click xuyên qua Card (tránh vừa thêm giỏ vừa chuyển trang)
+        e.stopPropagation();
         addToCart(product);
-        message.success(`Đã thêm ${product.name} vào giỏ!`);
+        message.success({ content: `Đã thêm ${product.name}!`, style: { marginTop: '10vh' } });
     };
 
-    // Hàm chuyển sang trang chi tiết
     const goToDetail = (id) => {
         navigate(`/product/${id}`);
     };
 
-    const handleCategoryClick = (e) => {
-        const key = e.key === 'all' ? null : e.key;
-        setSelectedCategory(key);
+    // Xử lý khi chọn danh mục từ Dropdown
+    const handleCategoryChange = (value) => {
+        setSelectedCategory(value === 'all' ? null : value);
         setCurrentPage(1);
     };
 
-    const menuItems = [
-        { label: 'Tất cả bánh', key: 'all', icon: <AppstoreOutlined /> },
-        ...categories.map(cat => ({ label: cat.name, key: cat.id }))
-    ];
-
     return (
-        <div style={{ padding: '40px 50px' }}>
-            <div style={{ textAlign: 'center', marginBottom: 40 }}>
-                <Title level={2}>Thực Đơn</Title>
-                <Text type="secondary">Chọn loại bánh bạn yêu thích</Text>
+        <div style={{ padding: isMobile ? '20px 10px' : '40px 50px', maxWidth: 1200, margin: '0 auto' }}>
+            
+            {/* 1. HEADER & BỘ LỌC DANH MỤC */}
+            <div style={{ textAlign: 'center', marginBottom: 30 }}>
+                <Title level={isMobile ? 3 : 2} style={{ fontFamily: 'Pacifico', marginBottom: 10 }}>
+                    Thực Đơn Bánh 🍰
+                </Title>
+                <Text type="secondary" style={{ display: 'block', marginBottom: 20 }}>
+                    Hương vị ngọt ngào đang chờ bạn
+                </Text>
+
+                {/* 👇 DROPDOWN CHỌN DANH MỤC (Thay cho Sidebar) 👇 */}
+                <div style={{ maxWidth: 400, margin: '0 auto' }}>
+                    <Select
+                        defaultValue="all"
+                        style={{ width: '100%', height: 45 }}
+                        onChange={handleCategoryChange}
+                        suffixIcon={<FilterOutlined />}
+                        size="large"
+                    >
+                        <Option value="all">✨ Tất cả các loại bánh</Option>
+                        {categories.map(cat => (
+                            <Option key={cat.id} value={cat.id}>🍰 {cat.name}</Option>
+                        ))}
+                    </Select>
+                </div>
             </div>
             
             <Divider />
 
-            <Row gutter={32}>
-                <Col xs={24} md={6} lg={5}>
-                    <Card title="Danh mục" bordered={false} style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-                        <Menu 
-                            mode="inline" 
-                            selectedKeys={[selectedCategory ? String(selectedCategory) : 'all']}
-                            onClick={handleCategoryClick}
-                            items={menuItems}
-                            style={{ border: 'none' }}
-                        />
-                    </Card>
-                </Col>
+            {/* 2. DANH SÁCH SẢN PHẨM */}
+            {loading ? (
+                <div style={{ textAlign: 'center', padding: 50 }}><Spin size="large" /></div>
+            ) : (
+                <>
+                    <Row gutter={[12, 24]}>
+{products.map((product, index) => {
+    const imageUrl = (!product.imageUrl || !product.imageUrl.startsWith('http'))
+        ? "https://placehold.co/300x200?text=No+Image"
+        : product.imageUrl;
 
-                <Col xs={24} md={18} lg={19}>
-                    {loading ? (
-                        <div style={{ textAlign: 'center', padding: 50 }}><Spin size="large" /></div>
-                    ) : (
-                        <>
-                            <Row gutter={[24, 32]}>
-                                {products.length === 0 ? (
-                                    <div style={{ width: '100%', textAlign: 'center', marginTop: 50, color: '#999' }}>
-                                        Chưa có bánh nào thuộc loại này 🍰
-                                    </div>
-                                ) : products.map((product) => {
-                                    const imageUrl = (!product.imageUrl || !product.imageUrl.startsWith('http')) 
-                                        ? "https://placehold.co/300x200?text=No+Image" : product.imageUrl;
-
-                                    return (
-                                        <Col xs={24} sm={12} lg={8} key={product.id}>
-                                            <Card
-                                                hoverable
-                                                style={{ borderRadius: 16, overflow: 'hidden', cursor: 'pointer' }} // Thêm cursor pointer
-                                                // 3. Sự kiện Click vào cả cái Card để chuyển trang
-                                                onClick={() => goToDetail(product.id)}
-                                                cover={
-                                                    <div style={{ overflow: 'hidden', height: 200 }}>
-                                                        <img alt={product.name} src={imageUrl} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s' }} 
-                                                            onMouseOver={e => e.currentTarget.style.transform = 'scale(1.1)'} 
-                                                            onMouseOut={e => e.currentTarget.style.transform = 'scale(1.0)'}
-                                                        />
-                                                    </div>
-                                                }
-                                                actions={[
-                                                    // Nút thêm giỏ hàng (đã chặn nổi bọt sự kiện)
-                                                    <Button type="text" block icon={<ShoppingCartOutlined />} onClick={(e) => handleAddToCart(e, product)}>
-                                                        Thêm vào giỏ
-                                                    </Button>
-                                                ]}
-                                            >
-                                                <Meta
-                                                    title={product.name}
-                                                    description={<Text strong style={{ color: '#d48806' }}>{product.price.toLocaleString()} đ</Text>}
-                                                />
-                                            </Card>
-                                        </Col>
-                                    );
-                                })}
-                            </Row>
-
-                            <div style={{ marginTop: 50, textAlign: 'center' }}>
-                                <Pagination 
-                                    current={currentPage} total={totalItems} pageSize={pageSize}
-                                    onChange={(page) => {
-                                        setCurrentPage(page);
-                                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                                    }}
-                                    showSizeChanger={false}
+    return (
+        <Col xs={12} sm={12} md={8} lg={6} key={product.id}>
+            <Badge.Ribbon text={product.isBestSeller ? "Hot" : null} color="red">
+                <motion.div 
+                    initial={{ opacity: 0, scale: 0.9 }} 
+                    animate={{ opacity: 1, scale: 1 }} 
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                >
+                    <Card
+                        hoverable
+                        style={{ borderRadius: 12, overflow: "hidden" }}
+                        bodyStyle={{ padding: isMobile ? "10px" : "20px" }}
+                        onClick={() => goToDetail(product.id)}
+                        cover={
+                            <div style={{ height: isMobile ? 140 : 200, overflow: "hidden" }}>
+                                <img 
+                                    src={imageUrl}
+                                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
                                 />
                             </div>
-                        </>
+                        }
+                    >
+                        <Title level={5} style={{ fontSize: isMobile ? 14 : 16 }}>
+                            {product.name}
+                        </Title>
+                        <Text strong style={{ color: '#d48806' }}>
+                            {product.price.toLocaleString()} đ
+                        </Text>
+
+                        <Button 
+                            type="primary"
+                            block
+                            icon={<ShoppingCartOutlined />}
+                            onClick={(e) => handleAddToCart(e, product)}
+                            style={{ marginTop: 10 }}
+                            size={isMobile ? 'small' : 'middle'}
+                        >
+                            {isMobile ? "Thêm" : "Thêm giỏ"}
+                        </Button>
+                    </Card>
+                </motion.div>
+            </Badge.Ribbon>
+        </Col>
+    );
+})}
+</Row>
+
+
+                    {/* 3. PHÂN TRANG */}
+                    {totalItems > 0 && (
+                        <div style={{ marginTop: 40, textAlign: 'center' }}>
+                            <Pagination 
+                                current={currentPage} 
+                                total={totalItems} 
+                                pageSize={pageSize}
+                                onChange={(page) => {
+                                    setCurrentPage(page);
+                                }}
+                                showSizeChanger={false}
+                                size={isMobile ? 'small' : 'default'}
+                            />
+                        </div>
                     )}
-                </Col>
-            </Row>
+                </>
+            )}
         </div>
     );
 };
