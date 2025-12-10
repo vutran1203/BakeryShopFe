@@ -74,6 +74,30 @@ const HomePage = () => {
         navigate(`?q=${encodeURIComponent(value)}`);
     };
 
+    function showMobileToastAndRedirect(message, seconds, redirectUrl) {
+  let timeLeft = seconds;
+
+  // Tạo toast
+  const toast = document.createElement("div");
+  toast.className = "mobile-toast";
+  toast.innerText = `${message} ${timeLeft}s`;
+  document.body.appendChild(toast);
+
+  // Interval đếm ngược
+  const timer = setInterval(() => {
+    timeLeft--;
+    toast.innerText = `${message} ${timeLeft}s`;
+
+    if (timeLeft <= 0) {
+      clearInterval(timer);
+      toast.remove();
+      window.location.href = redirectUrl; // Chuyển trang
+    }
+  }, 2000);
+}
+
+
+
     // Hàm thêm vào giỏ (Đã khôi phục)
     const handleAddToCart = (product) => {
         addToCart(product);
@@ -188,12 +212,12 @@ const ProductCard = ({ product, imageUrl, navigate, siteInfo, onAdd }) => {
         e.stopPropagation();
         const text = `Chào shop 👋, mình muốn mua bánh "${product.name}" giá ${product.price?.toLocaleString()}đ. Tư vấn giúp mình nhé!`;
         navigator.clipboard.writeText(text);
-        Modal.success({
-  title: "Đã copy đơn hàng!",
-  content: "Dán vào Messenger nhé 💬",
-  centered: true,
-  okText: "OK"
-});
+        showMobileToastAndRedirect(
+  "Đã copy đơn hàng! Dán vào Messenger nhé!",
+  2
+);
+
+
         const link = siteInfo?.facebookUrl; 
         
 

@@ -40,12 +40,11 @@ const CartPage = () => {
 
         // 2. Copy vào Clipboard
         navigator.clipboard.writeText(msg);
-        Modal.success({
-  title: "Đã copy đơn hàng!",
-  content: "Dán vào Messenger nhé 💬",
-  centered: true,
-  okText: "OK"
-});
+        showMobileToastAndRedirect(
+  "Đã copy đơn hàng! Dán vào Messenger nhé!",
+  2
+);
+
 
         // 3. Mở Messenger
         const link = siteInfo?.facebookUrl;
@@ -61,6 +60,30 @@ const CartPage = () => {
         updateQuantity(id, value);
         setCartItems(getCart()); // Load lại state để giao diện cập nhật
     };
+
+    function showMobileToastAndRedirect(message, seconds, redirectUrl) {
+  let timeLeft = seconds;
+
+  // Tạo toast
+  const toast = document.createElement("div");
+  toast.className = "mobile-toast";
+  toast.innerText = `${message} ${timeLeft}s`;
+  document.body.appendChild(toast);
+
+  // Interval đếm ngược
+  const timer = setInterval(() => {
+    timeLeft--;
+    toast.innerText = `${message} ${timeLeft}s`;
+
+    if (timeLeft <= 0) {
+      clearInterval(timer);
+      toast.remove();
+      window.location.href = redirectUrl; // Chuyển trang
+    }
+  }, 2000);
+}
+
+
     
 
     // Xử lý xóa
