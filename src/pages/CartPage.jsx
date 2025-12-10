@@ -40,7 +40,12 @@ const CartPage = () => {
 
         // 2. Copy vào Clipboard
         navigator.clipboard.writeText(msg);
-        message.success("Đã copy đơn hàng! Dán vào Messenger nhé 💬");
+        Modal.success({
+  title: "Đã copy đơn hàng!",
+  content: "Dán vào Messenger nhé 💬",
+  centered: true,
+  okText: "OK"
+});
 
         // 3. Mở Messenger
         const link = siteInfo?.facebookUrl;

@@ -188,7 +188,12 @@ const ProductCard = ({ product, imageUrl, navigate, siteInfo, onAdd }) => {
         e.stopPropagation();
         const text = `Chào shop 👋, mình muốn mua bánh "${product.name}" giá ${product.price?.toLocaleString()}đ. Tư vấn giúp mình nhé!`;
         navigator.clipboard.writeText(text);
-        message.success("Đã copy thông tin bánh! Dán vào Messenger nhé 💬");
+        Modal.success({
+  title: "Đã copy đơn hàng!",
+  content: "Dán vào Messenger nhé 💬",
+  centered: true,
+  okText: "OK"
+});
         const link = siteInfo?.facebookUrl; 
         
 
