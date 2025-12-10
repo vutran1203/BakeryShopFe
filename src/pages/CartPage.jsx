@@ -44,7 +44,11 @@ const CartPage = () => {
 
         // 3. Mở Messenger
         const link = siteInfo?.facebookUrl;
-        window.open(link, '_blank');
+        
+
+        setTimeout(() => {
+        window.open(link, '_blank'); // Mở Messenger
+    }, 1000); // Delay 1 giây để user thấy thông báo
     };
 
     // Xử lý thay đổi số lượng
@@ -137,7 +141,7 @@ const CartPage = () => {
         }}
     >
         Gửi đơn qua Messenger 
-        (Đã copy nội dung, chỉ cần dán vào tin nhắn!)
+        
     </Button>
 
     <Button

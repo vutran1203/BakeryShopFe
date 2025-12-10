@@ -189,8 +189,12 @@ const ProductCard = ({ product, imageUrl, navigate, siteInfo, onAdd }) => {
         const text = `Chào shop 👋, mình muốn mua bánh "${product.name}" giá ${product.price?.toLocaleString()}đ. Tư vấn giúp mình nhé!`;
         navigator.clipboard.writeText(text);
         message.success("Đã copy thông tin bánh! Dán vào Messenger nhé 💬");
-        const link = siteInfo?.facebookUrl || siteInfo?.FacebookUrl || "https://m.me/vutran1203"; 
-        window.open(link, '_blank');
+        const link = siteInfo?.facebookUrl; 
+        
+
+        setTimeout(() => {
+        window.open(link, '_blank'); // Mở Messenger
+    }, 1000); // Delay 1 giây để user thấy thông báo
     };
 
     // Hàm xử lý thêm vào giỏ (chặn sự kiện click vào thẻ)
@@ -244,7 +248,7 @@ const ProductCard = ({ product, imageUrl, navigate, siteInfo, onAdd }) => {
                     style={{ background: '#1877F2', borderColor: '#1877F2', color: '#fff', fontWeight: 600 }}
                 >
                     Liên hệ người bán 
-                    (Đã copy nội dung, chỉ cần dán vào tin nhắn!)
+                    
                 </Button>
             </div>
         </Card>
