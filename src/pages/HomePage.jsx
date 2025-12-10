@@ -93,7 +93,7 @@ const HomePage = () => {
       toast.remove();
       window.location.href = redirectUrl; // Chuyển trang
     }
-  }, 2000);
+  }, 1000);
 }
 
 
@@ -214,16 +214,8 @@ const ProductCard = ({ product, imageUrl, navigate, siteInfo, onAdd }) => {
         navigator.clipboard.writeText(text);
         showMobileToastAndRedirect(
   "Đã copy đơn hàng! Dán vào Messenger nhé!",
-  2
+  2, siteInfo?.facebookUrl
 );
-
-
-        const link = siteInfo?.facebookUrl; 
-        
-
-        setTimeout(() => {
-        window.open(link, '_blank'); // Mở Messenger
-    }, 1000); // Delay 1 giây để user thấy thông báo
     };
 
     // Hàm xử lý thêm vào giỏ (chặn sự kiện click vào thẻ)

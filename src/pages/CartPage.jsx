@@ -42,17 +42,9 @@ const CartPage = () => {
         navigator.clipboard.writeText(msg);
         showMobileToastAndRedirect(
   "Đã copy đơn hàng! Dán vào Messenger nhé!",
-  2
+  2, siteInfo?.facebookUrl
 );
 
-
-        // 3. Mở Messenger
-        const link = siteInfo?.facebookUrl;
-        
-
-        setTimeout(() => {
-        window.open(link, '_blank'); // Mở Messenger
-    }, 1000); // Delay 1 giây để user thấy thông báo
     };
 
     // Xử lý thay đổi số lượng
@@ -80,7 +72,7 @@ const CartPage = () => {
       toast.remove();
       window.location.href = redirectUrl; // Chuyển trang
     }
-  }, 2000);
+  }, 1000);
 }
 
 
