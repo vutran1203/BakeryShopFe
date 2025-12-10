@@ -8,7 +8,10 @@ import Snowfall from "react-snowfall";
 const { Footer, Content } = Layout;
 
 const MainLayout = () => {
-    const [siteInfo, setSiteInfo] = useState(null);
+    const [siteInfo, setSiteInfo] = useState(() => {
+        const saved = localStorage.getItem('site_info_cache');
+        return saved ? JSON.parse(saved) : DEFAULT_SITE_INFO;
+    });
     const [loadingInfo, setLoadingInfo] = useState(true);
 
     // Gọi API lấy thông tin website (1 lần duy nhất khi vào web)
