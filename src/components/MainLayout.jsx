@@ -4,6 +4,7 @@ import { Outlet } from 'react-router-dom';
 import Header from '../components/Header';
 import api from '../services/api';
 import Snowfall from "react-snowfall";
+import { DEFAULT_SITE_INFO } from '../utils/fallbackData';
 
 const { Footer, Content } = Layout;
 
