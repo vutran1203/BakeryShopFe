@@ -4,6 +4,7 @@ import './index.css'
 import App from './App.jsx';
 import { BrowserRouter } from "react-router-dom";
 import { ConfigProvider, App as AntdApp } from "antd";
+import { HelmetProvider } from 'react-helmet-async';
 
 // Bảng màu Bakery
 const bakeryTheme = {
@@ -28,7 +29,10 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <ConfigProvider theme={bakeryTheme}>
       <AntdApp> 
         <BrowserRouter>
-          <App />
+          <HelmetProvider>
+            <App />
+          </HelmetProvider>
+            
         </BrowserRouter>
       </AntdApp>
     </ConfigProvider>

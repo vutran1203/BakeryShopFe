@@ -5,6 +5,7 @@ import api from '../services/api';
 import { addToCart } from '../utils/cart';
 import { motion } from 'framer-motion';
 import { useNavigate, useLocation, useOutletContext } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 
 const { Title, Text, Paragraph } = Typography;
 const { useBreakpoint } = Grid;
@@ -82,6 +83,10 @@ const HomePage = () => {
 
     return (
         <div>
+          <Helmet>
+                <title>Trang Chủ - Mia Cake | Bánh Ngọt & Bánh Kem</title>
+                <meta name="description" content="Mia Cake chuyên cung cấp các loại bánh kem, bánh ngọt, bánh sinh nhật ngon nhất. Giao hàng nhanh chóng." />
+            </Helmet>
             {isMobile && (
                 <div style={{ padding: "10px 15px", background: "#fff", position: "sticky", top: 0, zIndex: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
                     <Input.Search placeholder="Tìm bánh..." onSearch={onSearch} enterButton allowClear size="middle" defaultValue={searchTerm} />
@@ -96,7 +101,7 @@ const HomePage = () => {
                 marginBottom: 30
             }}>
                 <h1 style={{ fontFamily: "Pacifico", fontSize: isMobile ? 32 : 60, margin: 0 }}>
-                    {siteInfo?.shopName || "Bakery Love"}
+                    {siteInfo?.shopName || "Mia Cake"}
                 </h1>
                 <p style={{ fontSize: isMobile ? 14 : 20, textAlign: 'center', padding: '0 10px' }}>
                     {siteInfo?.slogan || "Hương vị ngọt ngào"}
