@@ -31,8 +31,16 @@ const HomePage = () => {
     const fetchProducts = async (page, keyword) => {
         try {
             setLoading(true);
+            // 1. Xử lý tham số tìm kiếm
             const keywordParam = keyword ? `&search=${encodeURIComponent(keyword)}` : "";
-            const url = `/Products?page=${page}&pageSize=${pageSize}${keywordParam}&isBestSeller=true`;
+
+            // 2. Xử lý tham số Best Seller (LOGIC MỚI)
+            // - Nếu ĐANG TÌM (có keyword) -> thì rỗng "" (để tìm tất cả)
+            // - Nếu KHÔNG TÌM (trang chủ) -> thì thêm "&isBestSeller=true"
+            const bestSellerParam = keyword ? "" : "&isBestSeller=true";
+
+            // 3. Ghép thành URL hoàn chỉnh
+            const url = `/Products?page=${page}&pageSize=${pageSize}${keywordParam}${bestSellerParam}`;
             
             const response = await api.get(url);
             const payload = response.data;
