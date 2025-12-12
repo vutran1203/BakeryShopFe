@@ -52,6 +52,11 @@ const ProductDetailPage = () => {
         : "https://placehold.co/500x500?text=No+Image";
 
     return (
+<>
+<Helmet>
+    <title>{`${product.name} - Mia Cake`}</title> 
+    <meta name="description" content={`Mua bánh ${product.name} giá chỉ ${product.price}đ...`} />
+</Helmet>
         <div style={{ padding: '40px 50px', maxWidth: 1200, margin: '0 auto' }}>
             <Row gutter={[40, 40]}>
                 {/* CỘT TRÁI: ẢNH */}
@@ -114,6 +119,7 @@ const ProductDetailPage = () => {
                 ))}
             </Row>
         </div>
+        </>
     );
 };
 
