@@ -4,6 +4,7 @@ import { Row, Col, Card, Typography, Button, Rate, Divider, Image, message, Spin
 import { ShoppingCartOutlined, CarOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
 import api from '../services/api';
 import { addToCart } from '../utils/cart';
+import { Helmet } from 'react-helmet-async';
 
 const { Title, Text, Paragraph } = Typography;
 
