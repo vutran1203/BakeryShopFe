@@ -84,6 +84,7 @@ const HomePage = () => {
     return (
         <div>
           <Helmet>
+                 <link rel="canonical" href="https://www.miacake.me/" />
                 <title>Trang Chủ - Mia Cake | Bánh Ngọt & Bánh Kem</title>
                 <meta name="description" content="Mia Cake chuyên cung cấp các loại bánh kem, bánh ngọt, bánh sinh nhật ngon nhất. Giao hàng nhanh chóng." />
             </Helmet>

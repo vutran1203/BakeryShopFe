@@ -55,6 +55,7 @@ const ProductDetailPage = () => {
     return (
 <>
 <Helmet>
+      <link rel="canonical" href={`https://www.miacake.me/product/${product.id}`} />
     <title>{`${product.name} - Mia Cake`}</title> 
     <meta name="description" content={`Mua bánh ${product.name} giá chỉ ${product.price}đ...`} />
 </Helmet>

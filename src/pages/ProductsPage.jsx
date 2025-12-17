@@ -76,6 +76,7 @@ const ProductsPage = () => {
             
             {/* 2. SỬA SEO CHO TRANG DANH SÁCH (Không dùng biến product ở đây) */}
             <Helmet>
+                <link rel="canonical" href="https://www.miacake.me/products" />
                 <title>Thực Đơn Bánh Ngọt - Mia Cake 🍰</title>
                 <meta name="description" content="Khám phá thế giới bánh ngọt, bánh kem đa dạng, thơm ngon tại Mia Cake. Đặt hàng online giao ngay!" />
                 <meta property="og:title" content="Thực Đơn Bánh Ngọt - Mia Cake" />
